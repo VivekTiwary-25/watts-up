@@ -6,9 +6,9 @@ Boss usage: read `coord/usage.json` (from status line). Cutoff: 5h >= 90% -> hea
 | Worker | Model | Task | Status | % left |
 |---|---|---|---|---|
 | Boss | Claude Opus 5.5 (main acct) | plan / review / merge | active | see usage.json |
-| Vachana | Claude 2nd acct (opus; ONE call at a time) | T08 effects + energy wires | running 16:30 | not reported by CLI |
-| Codex Sol | gpt-6.1-sol | T07 bundle split + loading screen | running 16:20 | 5h 65% / 7d 68% (shared w/ Luna) |
-| Codex Luna | gpt-6-luna | T06 UI behaviour tests | running 16:20 | shared w/ Sol |
+| Vachana | Claude 2nd acct (opus; ONE call at a time) | T08 effects + energy wires (resumed after TLS error) | running 16:40 | not reported by CLI |
+| Codex Sol | gpt-6.1-sol | T10 sounds + mute | running 16:42 | see `omp usage` |
+| Codex Luna | gpt-6-luna | T09 intro shot | running 16:42 | shared w/ Sol |
 | Grok | xai-oauth/grok-4.7 | T05 Power Cut overlay | running 16:10 | 7d 81% |
 | Antigravity | gemini-3.8-flash | - | BLOCKED: Google disabled acct (403 TOS_VIOLATION) | n/a |
 
@@ -27,3 +27,5 @@ Boss usage: read `coord/usage.json` (from status line). Cutoff: 5h >= 90% -> hea
 - T02 data/bill/powercut/store, 27 tests (Sol) merged 16:14
 - T04 UI panels (Luna) merged 16:17
 - T03 grey-box scene (Vachana) merged 16:28
+- T06 UI behaviour tests (Luna) merged 16:35
+- T07 vendor split + loading screen (Sol) merged 16:38
