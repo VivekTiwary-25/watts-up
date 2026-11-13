@@ -7,6 +7,7 @@ import {
   ROOM_IDS,
   WALLS,
   fitShot,
+  overviewShot,
   type Anchor,
   type Vec3,
 } from './layout'
@@ -14,6 +15,8 @@ import {
 // Camera fov must match App.tsx <Canvas camera={{ fov }}>.
 const FOV = 45
 const ASPECT = 16 / 9
+// Scene fog starts at 20 (src/data/config.ts); allow a little haze but keep the house clear.
+const QUALITY_FOG_NEAR = 20
 
 const wallBoxes = WALLS.map((w) => {
   const half = new THREE.Vector3(...w.size).multiplyScalar(0.5)
@@ -75,6 +78,26 @@ describe('camera framing', () => {
 
   it('fitShot leaves landscape shots untouched', () => {
     expect(fitShot(ROOMS.living, 16 / 9).cameraPos).toEqual(ROOMS.living.cameraPos)
+  })
+
+  it.each([
+    ['phone portrait 9:19.5', 9 / 19.5],
+    ['tablet portrait', 3 / 4],
+  ])('%s: overview frames every appliance and stays out of the fog', (_, aspect) => {
+    const shot = overviewShot(aspect)
+    const dist = new THREE.Vector3(...shot.cameraPos).distanceTo(
+      new THREE.Vector3(...shot.cameraTarget),
+    )
+    expect(dist).toBeLessThan(QUALITY_FOG_NEAR + 8)
+    for (const a of ALL_ANCHORS) {
+      const label = `${a.id}/${a.room}`
+      expect(inFrustum(shot.cameraPos, shot.cameraTarget, a, aspect), label).toBe(true)
+      expect(visibleFrom(shot.cameraPos, a), label).toBe(true)
+    }
+  })
+
+  it('landscape overview is unchanged', () => {
+    expect(overviewShot(16 / 9)).toBe(OVERVIEW)
   })
 
   it('overview sees every appliance', () => {

@@ -68,7 +68,7 @@ test('shows the inverter limit for 3.5 seconds and restarts its timer on a new e
   useHouse.setState({
     powerCut: 'choosing',
     picks: ['fan', 'fridge', 'light'],
-    pickError: { message: 'Inverter can only run 3 appliances', at: 5 },
+    pickError: { id: 'ac', message: 'Inverter can only run 3 appliances', at: 5 },
   })
   render(<PowerCutOverlay />)
   expect(screen.getByRole('alert').textContent).toContain('Inverter can only run 3 appliances')
@@ -76,7 +76,9 @@ test('shows the inverter limit for 3.5 seconds and restarts its timer on a new e
     vi.advanceTimersByTime(POWER_CUT.messageMs - 500)
   })
   act(() => {
-    useHouse.setState({ pickError: { message: 'Inverter can only run 3 appliances', at: 6 } })
+    useHouse.setState({
+      pickError: { id: 'ac', message: 'Inverter can only run 3 appliances', at: 6 },
+    })
     vi.advanceTimersByTime(500)
   })
   expect(screen.getByRole('alert').textContent).toContain('Inverter can only run 3 appliances')

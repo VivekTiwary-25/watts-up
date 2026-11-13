@@ -61,15 +61,29 @@ export interface Shot {
   cameraTarget: Vec3
 }
 
+/**
+ * Portrait overview: high and looking along the house's short axis (from the east), so the
+ * 10 m depth spans the narrow screen width at a distance that stays out of the scene fog.
+ * Composed for `OVERVIEW_PORTRAIT_ASPECT`.
+ */
+export const OVERVIEW_PORTRAIT: Shot = { cameraPos: [-9, 19, -0.8], cameraTarget: [0, 0, -0.8] }
+export const OVERVIEW_PORTRAIT_ASPECT = 0.6
+
 /** Same shot, camera moved back so a narrow (portrait) viewport still shows the room's width. */
-export function fitShot(shot: Shot, aspect: number): Shot {
-  const k = Math.min(SHOT_FIT.maxPullBack, Math.max(1, SHOT_FIT.refAspect / (aspect || 1)))
+export function fitShot(shot: Shot, aspect: number, refAspect: number = SHOT_FIT.refAspect): Shot {
+  const k = Math.min(SHOT_FIT.maxPullBack, Math.max(1, refAspect / (aspect || 1)))
   const [px, py, pz] = shot.cameraPos
   const [tx, ty, tz] = shot.cameraTarget
   return {
     cameraPos: [tx + (px - tx) * k, ty + (py - ty) * k, tz + (pz - tz) * k],
     cameraTarget: shot.cameraTarget,
   }
+}
+
+/** Overview shot for a viewport: the classic angle on landscape, the portrait shot below aspect 1. */
+export function overviewShot(aspect: number): Shot {
+  if (aspect >= 1) return OVERVIEW
+  return fitShot(OVERVIEW_PORTRAIT, aspect, OVERVIEW_PORTRAIT_ASPECT)
 }
 
 export const INTRO_CAMERA = {

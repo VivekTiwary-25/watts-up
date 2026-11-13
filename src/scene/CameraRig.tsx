@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
 import { useHouse } from '@/store/useHouse'
 import { MOTION } from './effects/mains'
-import { INTRO_CAMERA, OVERVIEW, ROOMS, fitShot } from './layout'
+import { INTRO_CAMERA, ROOMS, fitShot, overviewShot } from './layout'
 
 const I = INTRO_CAMERA
 
@@ -27,7 +27,8 @@ export function CameraRig() {
       return
     }
     // room shots pull back on portrait screens so the whole room stays in frame
-    const shot = view === 'room' && focusRoom ? fitShot(ROOMS[focusRoom], aspect) : OVERVIEW
+    const shot =
+      view === 'room' && focusRoom ? fitShot(ROOMS[focusRoom], aspect) : overviewShot(aspect)
     const animate = !first.current && !MOTION.reduce
     first.current = false
     c.smoothTime = view === 'overview' ? 1.2 : 0.6

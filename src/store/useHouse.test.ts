@@ -80,6 +80,7 @@ describe('house store', () => {
     actions.pick('ac')
     expect(useHouse.getState().picks).toEqual(['fan', 'light', 'fridge'])
     expect(useHouse.getState().pickError).toEqual({
+      id: 'ac', // the refused appliance
       message: 'Inverter can only run 3 appliances',
       at: expect.any(Number),
     })

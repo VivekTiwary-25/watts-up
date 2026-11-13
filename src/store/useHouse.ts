@@ -20,7 +20,7 @@ export interface HouseState {
   powerCut: PowerCutPhase
   picks: ApplianceId[]
   savedOn: Record<ApplianceId, boolean> | null
-  pickError: { message: string; at: number } | null
+  pickError: { id: ApplianceId; message: string; at: number } | null
   muted: boolean
   toggle(id: ApplianceId): void
   setOn(id: ApplianceId, v: boolean): void
@@ -91,7 +91,7 @@ export const useHouse = create<HouseState>((set, get) => ({
       const result = togglePick(s.picks, id)
       return {
         picks: result.picks,
-        pickError: result.blocked ? { message: result.reason!, at: Date.now() } : null,
+        pickError: result.blocked ? { id, message: result.reason!, at: Date.now() } : null,
       }
     }),
   retryPicks: () => {
