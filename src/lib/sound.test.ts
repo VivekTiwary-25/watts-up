@@ -194,6 +194,7 @@ describe('synthesized sound', () => {
       expect(gains[1].gain.setTargetAtTime).toHaveBeenLastCalledWith(0, 0, 0.04)
       useHouse.getState().startPowerCut()
       expect(sources).toHaveLength(2)
+      useHouse.getState().setPowerCutPhase('choosing')
       useHouse.getState().pick('fan')
       expect(oscillators).toHaveLength(3)
       expect(gains[1].gain.setTargetAtTime).toHaveBeenLastCalledWith(SOUND.fan.volume, 0, 0.04)
