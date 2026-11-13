@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_ANCHORS, ANCHORS, FLOOR, LIGHT_ANCHORS, METER, ROOMS, ROOM_IDS, WALL, WALLS } from './layout'
+import {
+  ALL_ANCHORS,
+  ANCHORS,
+  FLOOR,
+  LIGHT_ANCHORS,
+  METER,
+  ROOMS,
+  ROOM_IDS,
+  WALL,
+  WALLS,
+} from './layout'
 
 const inside = (r: (typeof ROOMS)[keyof typeof ROOMS], x: number, z: number) =>
   Math.abs(x - r.center[0]) <= r.size[0] / 2 && Math.abs(z - r.center[2]) <= r.size[1] / 2
@@ -20,6 +30,27 @@ describe('layout', () => {
 
   it('one light per room', () => {
     expect(LIGHT_ANCHORS.map((a) => a.room).sort()).toEqual([...ROOM_IDS].sort())
+  })
+
+  it('no two clickable anchors overlap in plan view', () => {
+    const rect = (a: (typeof ALL_ANCHORS)[number]) => {
+      const turned = Math.abs(Math.sin(a.rotationY ?? 0)) > 0.5
+      const [w, d] = turned ? [a.size[2], a.size[0]] : [a.size[0], a.size[2]]
+      return {
+        x0: a.position[0] - w / 2,
+        x1: a.position[0] + w / 2,
+        z0: a.position[2] - d / 2,
+        z1: a.position[2] + d / 2,
+      }
+    }
+    for (let i = 0; i < ALL_ANCHORS.length; i++) {
+      for (let j = i + 1; j < ALL_ANCHORS.length; j++) {
+        const a = rect(ALL_ANCHORS[i])
+        const b = rect(ALL_ANCHORS[j])
+        const overlap = a.x0 < b.x1 && b.x0 < a.x1 && a.z0 < b.z1 && b.z0 < a.z1
+        expect(overlap, `${ALL_ANCHORS[i].id} vs ${ALL_ANCHORS[j].id}`).toBe(false)
+      }
+    }
   })
 
   it('walls are full height and leave door gaps', () => {

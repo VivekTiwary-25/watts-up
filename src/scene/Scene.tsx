@@ -14,6 +14,7 @@ import { Effects } from './effects/Effects'
 import { MAINS } from './effects/mains'
 import { lerp } from './effects/useLevel'
 import { ALL_ANCHORS, FLOOR, METER } from './layout'
+import { PickFeedback } from './PickFeedback'
 import { PostFX } from './PostFX'
 import { Quality } from './Quality'
 import { requestLiveShadows } from './useQuality'
@@ -161,6 +162,7 @@ export function Scene() {
         {ALL_ANCHORS.map((a) => (
           <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
         ))}
+        <PickFeedback />
         <GroundShadows />
         {/* the single EffectComposer: AO, bloom, tone map, outline, vignette */}
         <PostFX />

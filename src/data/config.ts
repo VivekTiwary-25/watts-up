@@ -50,6 +50,15 @@ export const VISUALS = {
   led: { on: '#4dff9a', off: '#3a1d1d', glow: 2.5 },
   microwave: { glow: '#ffb45a', intensity: 1.8 },
   washer: { maxSpin: 9 },
+  /** Power-cut pick feedback: red flash on a blocked pick, green halo under picked appliances. */
+  pick: {
+    blockedColor: '#ff3b3b',
+    blockedMs: 600,
+    blockedOpacity: 0.55,
+    haloColor: '#4dff9a',
+    haloOpacity: 0.55,
+    haloPulse: 0.2,
+  },
   wire: {
     baseWidth: 0.012,
     widthPerWatt: 1 / 25000, // AC (1500 W) ≈ 0.072, light (40 W) ≈ 0.014

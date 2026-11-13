@@ -69,12 +69,20 @@ export const ANCHORS: Anchor[] = [
   { id: 'geyser', room: 'bathroom', position: [4, 1.9, -4.7], size: [0.45, 0.7, 0.4] },
 ]
 
-export const LIGHT_ANCHORS: Anchor[] = ROOM_IDS.map((r) => ({
-  id: 'light',
-  room: r,
-  position: [ROOMS[r].center[0], WALL.height - 0.06, ROOMS[r].center[2]],
-  size: [0.5, 0.06, 0.5],
-}))
+/** Plan-view [x, z] offset from the room centre, so a light never sits on another ceiling item. */
+const LIGHT_OFFSET: Partial<Record<Room, [number, number]>> = {
+  living: [2.2, -1.2], // the ceiling fan owns the middle of the living room
+}
+
+export const LIGHT_ANCHORS: Anchor[] = ROOM_IDS.map((r) => {
+  const [dx, dz] = LIGHT_OFFSET[r] ?? [0, 0]
+  return {
+    id: 'light',
+    room: r,
+    position: [ROOMS[r].center[0] + dx, WALL.height - 0.06, ROOMS[r].center[2] + dz],
+    size: [0.5, 0.06, 0.5],
+  }
+})
 
 export const ALL_ANCHORS: Anchor[] = [...ANCHORS, ...LIGHT_ANCHORS]
 
