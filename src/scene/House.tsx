@@ -1,6 +1,7 @@
 import * as THREE from 'three'
+import type { ThreeEvent } from '@react-three/fiber'
 import { useHouse } from '@/store/useHouse'
-import { FLOOR, ROOMS, ROOM_IDS, WALLS, type Vec3 } from './layout'
+import { FLOOR, ROOMS, ROOM_IDS, WALLS, type Room, type Vec3 } from './layout'
 import { mergeBoxes } from './mergeBoxes'
 
 /** Warm, dark wood per room (bathroom: cool stone). Roughness varies a touch per room. */
@@ -47,8 +48,44 @@ const SKIRTING_GEOMETRY = mergeBoxes(
 const noRaycast = () => null
 
 /** Grey-box shell: base slab, per-room floor tiles, walls with skirting (no roof). */
+/** Click a floor: clears hover/selection; in overview it also flies into that room. */
+function onFloorClick(id: Room, e: ThreeEvent<MouseEvent>) {
+  if (e.delta > 6) return // camera drag
+  const s = useHouse.getState()
+  s.select(null)
+  s.setHovered(null)
+  if (s.view === 'overview') {
+    e.stopPropagation()
+    s.goToRoom(id)
+  }
+}
+
+/** Raycastable but never drawn (material.visible = false skips colour + shadow passes). */
+const HIDDEN_MATERIAL = new THREE.MeshBasicMaterial({ visible: false })
+
 export function House({ hideShell = false }: { hideShell?: boolean }) {
-  if (hideShell) return null
+  if (hideShell) {
+    // house.glb replaces the shell, but the floors stay as invisible room click targets
+    return (
+      <group name="house-hit-floors">
+        {ROOM_IDS.map((id) => {
+          const r = ROOMS[id]
+          return (
+            <mesh
+              key={id}
+              name={`floor-${id}`}
+              position={[r.center[0], 0.001, r.center[2]]}
+              rotation-x={-Math.PI / 2}
+              material={HIDDEN_MATERIAL}
+              onClick={(e) => onFloorClick(id, e)}
+            >
+              <planeGeometry args={r.size} />
+            </mesh>
+          )
+        })}
+      </group>
+    )
+  }
   return (
     <group name="house">
       {/* base slab, slightly larger than the plan */}
@@ -67,16 +104,7 @@ export function House({ hideShell = false }: { hideShell?: boolean }) {
             position={[r.center[0], 0.001, r.center[2]]}
             rotation-x={-Math.PI / 2}
             receiveShadow
-            onClick={(e) => {
-              if (e.delta > 6) return // camera drag
-              const s = useHouse.getState()
-              s.select(null)
-              s.setHovered(null)
-              if (s.view === 'overview') {
-                e.stopPropagation()
-                s.goToRoom(id)
-              }
-            }}
+            onClick={(e) => onFloorClick(id, e)}
           >
             <planeGeometry args={r.size} />
             {/* slight sheen + thin clearcoat: reads as finished wood/stone, not matte clay */}

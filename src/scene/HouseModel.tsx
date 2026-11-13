@@ -11,6 +11,7 @@ import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { glbExists } from './glb'
 import { hideShell } from './hideShell'
+import { markShadowsDirty } from './useQuality'
 
 const URL = '/models/house.glb'
 
@@ -45,6 +46,7 @@ function LoadedHouse() {
     const center = bounds.getCenter(new THREE.Vector3())
     const scale = Math.min(12 / (size.x || 1), 10 / (size.z || 1))
     setFit({ scale, position: [-center.x * scale, -bounds.min.y * scale, -center.z * scale] })
+    markShadowsDirty() // shadow maps are cached: re-render them with the house in
   }, [object])
 
   return fit ? <primitive object={object} scale={fit.scale} position={fit.position} /> : null
