@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { CameraControls, CameraControlsImpl } from '@react-three/drei'
 import { useHouse } from '@/store/useHouse'
 import { MOTION } from './effects/mains'
-import { VILLA_CUT_SHOT, VILLA_SHOT, villaOrbit } from './IntroVilla'
+import { VILLA_SHOT, VILLA_VIEW_TARGET, villaOrbit } from './IntroVilla'
 import { ROOMS } from './layout'
 import {
   OVERHEAD_LIMITS,
@@ -43,6 +43,9 @@ export function CameraRig() {
   const height = useThree((s) => Math.round(s.size.height / 40) * 40)
   const first = useRef(true)
   const introTime = useRef(0)
+  const villaTime = useRef(0)
+  /** The user dragged in the Villa view: stop the slow sway so it doesn't fight them. */
+  const villaHeld = useRef(false)
 
   /** Fly to the shot for the current view. */
   const applyShot = useCallback(
@@ -56,9 +59,12 @@ export function CameraRig() {
         return
       }
       if (villaView) {
+        // back to the same front view as the intro; useFrame then sways it until the user drags
+        villaTime.current = 0
+        villaHeld.current = false
         c.smoothTime = 1.2
         void c.setFocalOffset(0, 0, 0, animate)
-        void c.setLookAt(...VILLA_CUT_SHOT.cameraPos, ...VILLA_CUT_SHOT.cameraTarget, animate)
+        void c.setLookAt(...villaOrbit(0, MOTION.reduce), ...VILLA_VIEW_TARGET, animate)
         return
       }
       if (roomView && focusRoom) {
@@ -99,13 +105,32 @@ export function CameraRig() {
     return () => window.removeEventListener(RESET_VIEW_EVENT, onReset)
   }, [])
 
+  // the user grabbing the camera in the Villa view ends the automatic sway
+  useEffect(() => {
+    const c = ref.current
+    if (!c) return
+    const hold = () => {
+      villaHeld.current = true
+    }
+    c.addEventListener('controlstart', hold)
+    return () => c.removeEventListener('controlstart', hold)
+  }, [])
+
   useFrame((_, delta) => {
     const c = ref.current
     // MOTION.reduce is a cached media-query flag: no matchMedia() call per frame
-    if (!c || view !== 'intro' || MOTION.reduce) return
-    // slow orbit around the villa exterior
-    introTime.current += delta
-    void c.setLookAt(...villaOrbit(introTime.current), ...VILLA_SHOT.target, false)
+    if (!c || MOTION.reduce) return
+    if (view === 'intro') {
+      // slow sway around the villa front
+      introTime.current += delta
+      void c.setLookAt(...villaOrbit(introTime.current), ...VILLA_SHOT.target, false)
+      return
+    }
+    if (villaView && !villaHeld.current) {
+      // same sway in the Villa view; eased (transition on) so the fly-in from the rooms stays smooth
+      villaTime.current += delta
+      void c.setLookAt(...villaOrbit(villaTime.current), ...VILLA_VIEW_TARGET, true)
+    }
   })
 
   // Esc → back to overview

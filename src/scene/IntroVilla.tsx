@@ -9,14 +9,13 @@ import {
   type ReactNode,
 } from 'react'
 import * as THREE from 'three'
-import { ContactShadows, Environment, PerformanceMonitor, Sky, useGLTF } from '@react-three/drei'
+import { ContactShadows, Environment, Sky, useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useHouse } from '@/store/useHouse'
 import { MOTION } from './effects/mains'
 import { glbExists } from './glb'
 
 /** Full villa (~5.3M vertices): only for the section-cut "Villa" view, loaded when it opens. */
-const FULL_URL = '/models/house.glb'
 /** Simplified villa (gltfpack -cc -si 0.1 -sa, ~99k vertices, same bounds) for the intro. */
 const LITE_URL = '/models/house-lite.glb'
 
@@ -37,32 +36,19 @@ export const VILLA_SHOT = {
   radius: 40,
   height: 17,
   sweep: 0.55,
-  periodS: 48,
+  periodS: 64,
 } as const
+
+/** Villa view looks a little higher than the intro (no hero card below), so the villa sits centred. */
+export const VILLA_VIEW_TARGET: [number, number, number] = [0, 2.5, -8]
 
 /**
- * Section cut: a horizontal clipping plane keeps everything below `h` (world y). Uncut sits above
- * the roof (~11.7 m); the villa view lowers it to just over the ground floor (y ~1.83 m).
+ * Camera position on the villa orbit at time `t` seconds. t = 0 (and `still`, for reduced motion)
+ * is the front view of the open +x facade; from there it sways slowly either side and back.
  */
-export const VILLA_CUT = { uncut: 12.5, ground: 4.2, ease: 2.5 } as const
-
-/** Villa view camera: looks down into the cut-open ground floor from the open (+x) side. */
-export const VILLA_CUT_SHOT = {
-  cameraPos: [16, 18, -6] as [number, number, number],
-  cameraTarget: [0, 1.8, -8] as [number, number, number],
-} as const
-
-/** Keeps points with y <= constant: normal (0,-1,0) gives -y + h >= 0. */
-const CUT_PLANE = new THREE.Plane(new THREE.Vector3(0, -1, 0), VILLA_CUT.uncut)
-const CUT_PLANES = [CUT_PLANE]
-
-/** The hillside terrain stays whole so the cut villa still sits on its slope. */
-const isTerrain = (material: THREE.Material) => material.name.startsWith('Grass')
-
-/** Camera position on the intro orbit at time `t` seconds (static mid-sweep when `still`). */
 export function villaOrbit(t: number, still = false): [number, number, number] {
   const s = VILLA_SHOT
-  const phase = still ? 0.35 : Math.sin((t / s.periodS) * Math.PI * 2) * s.sweep
+  const phase = still ? 0 : Math.sin((t / s.periodS) * Math.PI * 2) * s.sweep
   return [
     s.target[0] + Math.cos(phase) * s.radius,
     s.height,
@@ -116,11 +102,6 @@ function Villa({ url, hideLines = false, onReady }: VillaProps) {
           fades.push({ material, opacity: material.opacity, transparent: material.transparent })
         }
         material.fog = false
-        if (isTerrain(material)) continue
-        // section cut: interiors show their back faces once the walls above are clipped away
-        material.clippingPlanes = CUT_PLANES
-        material.side = THREE.DoubleSide
-        material.needsUpdate = true
       }
     })
     const bounds = new THREE.Box3().setFromObject(object)
@@ -192,34 +173,19 @@ function Ground() {
 }
 
 /**
- * Villa exterior, sunset sky and light. The intro orbits a simplified villa (house-lite.glb),
- * loaded after first paint and faded in; the "Villa" view loads the full model lazily and eases
- * a clipping plane down to cut it open at the ground floor. In the rooms view nothing renders
+ * Villa exterior, sunset sky and light. The intro and the "Villa" view both show a simplified
+ * villa (house-lite.glb) from the front, loaded after first paint and faded in. In the rooms view nothing renders
  * (the lite GLB stays cached by useGLTF, so going back is instant).
  */
 export function IntroVilla() {
   const intro = useHouse((s) => s.view === 'intro')
   const villa = useHouse((s) => s.villa)
-  const cut = villa && !intro
+  // the Villa view shows the same whole villa from the front as the intro
   const show = intro || villa
   const [lite, setLite] = useState(false)
-  const [full, setFull] = useState(false)
   const [ready, setReady] = useState(false)
   const get = useThree((s) => s.get)
   const setDpr = useThree((s) => s.setDpr)
-
-  // material clipping planes only work with local clipping on the renderer
-  useEffect(() => {
-    get().gl.localClippingEnabled = true
-  }, [get])
-
-  useFrame((_, delta) => {
-    const target = cut ? VILLA_CUT.ground : VILLA_CUT.uncut
-    const h = CUT_PLANE.constant
-    if (h === target) return
-    const next = MOTION.reduce ? target : h + (target - h) * (1 - Math.exp(-delta * VILLA_CUT.ease))
-    CUT_PLANE.constant = Math.abs(next - target) < 0.005 ? target : next
-  })
 
   // start on the lite villa only after first paint: sky, ground and UI show immediately
   useEffect(() => {
@@ -237,16 +203,6 @@ export function IntroVilla() {
       else window.clearTimeout(handle)
     }
   }, [])
-
-  // the full villa is only probed (and then loaded) once the Villa view opens
-  useEffect(() => {
-    if (!villa) return
-    let alive = true
-    glbExists(FULL_URL).then((ok) => alive && setFull(ok))
-    return () => {
-      alive = false
-    }
-  }, [villa])
 
   // intro budget: no villa within 8 s means skip straight to the overhead rooms view
   useEffect(() => {
@@ -274,11 +230,9 @@ export function IntroVilla() {
   return (
     <>
       {show && <SunsetBackdrop />}
-      {intro && lite && liteVilla}
-      {intro && ready && (
+      {show && lite && liteVilla}
+      {show && ready && (
         <>
-          {/* watch the frame rate only once the villa is in (loading hitches don't count) */}
-          <PerformanceMonitor onDecline={skipIntro} />
           <ContactShadows
             frames={1}
             position={[0, 0.02, -8]}
@@ -289,14 +243,6 @@ export function IntroVilla() {
             resolution={512}
           />
         </>
-      )}
-      {cut && full && (
-        <Boundary>
-          {/* while the full villa streams in, the cached lite one stands in */}
-          <Suspense fallback={lite ? liteVilla : null}>
-            <Villa url={FULL_URL} />
-          </Suspense>
-        </Boundary>
       )}
     </>
   )
