@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_ANCHORS, ANCHORS, FLOOR, LIGHT_ANCHORS, METER, ROOMS, ROOM_IDS, WALL, WALLS } from './layout'
+import {
+  ALL_ANCHORS,
+  ANCHORS,
+  FLOOR,
+  LIGHT_ANCHORS,
+  METER,
+  ROOMS,
+  ROOM_IDS,
+  WALL,
+  WALLS,
+} from './layout'
 
 const inside = (r: (typeof ROOMS)[keyof typeof ROOMS], x: number, z: number) =>
   Math.abs(x - r.center[0]) <= r.size[0] / 2 && Math.abs(z - r.center[2]) <= r.size[1] / 2
