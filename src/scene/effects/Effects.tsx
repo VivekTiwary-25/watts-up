@@ -4,6 +4,7 @@ import { Geyser } from './Geyser'
 import { MainsDriver } from './MainsDriver'
 import { RoomLights, SceneLights } from './Lighting'
 import { Tv } from './Tv'
+import { Fridge, Microwave, Washer } from './Utility'
 
 /** All "living house" effects. MainsDriver must stay first: useFrame runs in mount order. */
 export function Effects() {
@@ -16,6 +17,9 @@ export function Effects() {
       <Tv />
       <Ac />
       <Geyser />
+      <Fridge />
+      <Microwave />
+      <Washer />
     </>
   )
 }
