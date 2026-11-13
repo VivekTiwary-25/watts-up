@@ -1,6 +1,7 @@
 # T04 — UI panels (worker: Codex Luna) · branch `t04-ui-panels`
 
-Use skills: `frontend-design`, `make-interfaces-feel-better`. Code against `coord/CONTRACT.md` (Store, Bill). T02 builds store/bill in parallel: if `src/store/useHouse.ts` / `src/lib/bill.ts` don't exist, create TEMPORARY stubs that match the contract exactly (simple correct implementation is fine) and say so in your result; boss keeps T02's versions at merge.
+IMPORTANT: Implement the code now, do not stop early. The skills below are optional style guidance only; do not run their workflows (no interviews, no plans). Do not stop until steps 1-7 are written and `npm run build` + `npm test` pass.
+Style hints from skills `frontend-design`, `make-interfaces-feel-better`: tabular-nums for money, subtle inner borders, no bouncy overshoot. Code against `coord/CONTRACT.md` (Store, Bill). T02 builds store/bill in parallel: if `src/store/useHouse.ts` / `src/lib/bill.ts` don't exist, create TEMPORARY stubs that match the contract exactly (simple correct implementation is fine) and say so in your result; boss keeps T02's versions at merge.
 
 Files you may touch: `src/ui/**` (new), `src/App.tsx` (only to mount the overlay `<HUD />` above the canvas), stubs above, `coord/results/T04-ui-panels.md`.
 
