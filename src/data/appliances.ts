@@ -1,6 +1,6 @@
 export type RoomId = 'living' | 'kitchen' | 'bedroom' | 'bathroom' | 'all'
 export type ApplianceId =
-  'fan' | 'ac' | 'fridge' | 'tv' | 'light' | 'washer' | 'geyser' | 'microwave'
+  'fan' | 'ac' | 'fridge' | 'tv' | 'light' | 'washer' | 'geyser' | 'stove'
 
 export interface Appliance {
   id: ApplianceId
@@ -93,15 +93,15 @@ export const APPLIANCES: Appliance[] = [
     description: 'Warm water makes your morning shower cosy.',
   },
   {
-    id: 'microwave',
-    name: 'Microwave',
+    id: 'stove',
+    name: 'Electric Stove',
     room: 'kitchen',
-    watts: 1200,
-    defaultHoursPerDay: 0.5,
+    watts: 1500,
+    defaultHoursPerDay: 1,
     isOnByDefault: false,
-    comfortScore: 1,
-    modelFile: 'microwave.glb',
-    description: 'Heat up a quick meal when you need it.',
+    comfortScore: 2,
+    modelFile: 'stove.glb',
+    description: 'Cook a hot meal on the hob or in the oven.',
   },
 ]
 

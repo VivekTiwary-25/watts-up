@@ -51,7 +51,7 @@ Recorded live-site verification for [watts-up-jade.vercel.app](https://watts-up-
 | LED Lights      | All rooms   |    40 |                 6 |       3 |
 | Washing Machine | Bathroom    |   500 |                 1 |       1 |
 | Geyser          | Bathroom    | 2,000 |                 1 |       2 |
-| Microwave       | Kitchen     | 1,200 |               0.5 |       1 |
+| Electric Stove  | Kitchen     | 1,500 |                 1 |       2 |
 
 ## How the bill is calculated
 

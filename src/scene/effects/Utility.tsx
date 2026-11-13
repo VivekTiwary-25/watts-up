@@ -44,31 +44,53 @@ export function Fridge() {
   )
 }
 
-const mw = anchorOf('microwave')
-const windowGeo = new THREE.PlaneGeometry(mw.size[0] * 0.58, mw.size[1] * 0.66)
-const MW_GLOW = new THREE.Color(VISUALS.microwave.glow)
-const MW_DARK = new THREE.Color('#0b0d10')
-export function Microwave() {
-  const level = useLevel('microwave')
-  const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: MW_DARK, toneMapped: false }), [])
+const stove = anchorOf('stove')
+/** Hob ring (flat annulus laid on the stove top), radii in metres. */
+const ringGeo = new THREE.RingGeometry(0.06, 0.1, 40)
+const STOVE_GLOW = new THREE.Color(VISUALS.stove.glow)
+const STOVE_DARK = new THREE.Color('#120a08')
+/** Plan offsets of the two front hob rings, as fractions of the stove's [width, depth]. */
+const RINGS: [number, number][] = [
+  [-0.22, 0.18],
+  [0.22, 0.18],
+]
+/** Two front hob rings glow orange-red while the stove runs, with a slow heat shimmer. */
+export function Stove() {
+  const level = useLevel('stove')
+  const mat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: STOVE_DARK,
+        toneMapped: false,
+        side: THREE.DoubleSide,
+      }),
+    [],
+  )
   useDispose(mat)
   useFrame(({ clock }) => {
-    const hum = MOTION.reduce ? 1 : 0.92 + 0.08 * Math.sin(clock.elapsedTime * 11)
+    const shimmer = MOTION.reduce ? 1 : 0.9 + 0.1 * Math.sin(clock.elapsedTime * 3.1)
     mat.color
-      .copy(MW_DARK)
-      .lerp(MW_GLOW, Math.min(1, level.v * hum))
-      .multiplyScalar(1 + (VISUALS.microwave.intensity - 1) * level.v)
+      .copy(STOVE_DARK)
+      .lerp(STOVE_GLOW, Math.min(1, level.v * shimmer))
+      .multiplyScalar(1 + (VISUALS.stove.intensity - 1) * level.v)
   })
+  const [w, h, d] = stove.size
   return (
-    <Front anchor={mw}>
-      <mesh
-        geometry={windowGeo}
-        material={mat}
-        position={[-mw.size[0] * 0.12, 0, 0]}
-        raycast={() => null}
-      />
-      <StatusLed level={level} position={[mw.size[0] / 2 - 0.07, mw.size[1] / 2 - 0.07, 0]} />
-    </Front>
+    <group position={stove.position} rotation-y={stove.rotationY ?? 0}>
+      {RINGS.map(([fx, fz]) => (
+        <mesh
+          key={fx}
+          geometry={ringGeo}
+          material={mat}
+          position={[fx * w, h / 2 + 0.012, fz * d]}
+          rotation-x={-Math.PI / 2}
+          raycast={() => null}
+        />
+      ))}
+      <group position={[0, 0, d / 2 + 0.006]}>
+        <StatusLed level={level} position={[w / 2 - 0.06, h / 2 - 0.05, 0]} />
+      </group>
+    </group>
   )
 }
 

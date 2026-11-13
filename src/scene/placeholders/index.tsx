@@ -6,7 +6,7 @@ import { FridgeModel } from './Fridge'
 import { GeyserModel } from './Geyser'
 import type { PlaceholderProps } from './kit'
 import { LightModel } from './Light'
-import { MicrowaveModel } from './Microwave'
+import { StoveModel } from './Stove'
 import { TvModel } from './Tv'
 import { WasherModel } from './Washer'
 
@@ -20,5 +20,5 @@ export const PLACEHOLDER_MODELS: Record<ApplianceId, ComponentType<PlaceholderPr
   light: LightModel,
   washer: WasherModel,
   geyser: GeyserModel,
-  microwave: MicrowaveModel,
+  stove: StoveModel,
 }

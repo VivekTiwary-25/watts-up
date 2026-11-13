@@ -3,13 +3,13 @@
 ## Types — `src/data/appliances.ts` (owner T02)
 ```ts
 export type RoomId = 'living' | 'kitchen' | 'bedroom' | 'bathroom' | 'all';
-export type ApplianceId = 'fan'|'ac'|'fridge'|'tv'|'light'|'washer'|'geyser'|'microwave';
+export type ApplianceId = 'fan'|'ac'|'fridge'|'tv'|'light'|'washer'|'geyser'|'stove';
 export interface Appliance { id: ApplianceId; name: string; room: RoomId; watts: number;
   defaultHoursPerDay: number; isOnByDefault: boolean; comfortScore: number; modelFile: string; description: string; }
 export const APPLIANCES: Appliance[];            // table from brief; light room = 'all'
 export const APPLIANCE_BY_ID: Record<ApplianceId, Appliance>;
 ```
-isOnByDefault: fan, fridge, tv, light = true; ac, washer, geyser, microwave = false.
+isOnByDefault: fan, fridge, tv, light = true; ac, washer, geyser, stove = false.
 
 ## Config — `src/data/config.ts` (owner T02)
 ```ts

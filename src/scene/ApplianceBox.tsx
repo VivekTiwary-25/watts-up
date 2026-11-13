@@ -14,7 +14,7 @@ const ON_TINT: Record<Anchor['id'], string> = {
   light: '#ffd27a',
   washer: '#7fc8ff',
   geyser: '#ff9a6a',
-  microwave: '#ffc070',
+  stove: '#ffa060',
 }
 
 /**
