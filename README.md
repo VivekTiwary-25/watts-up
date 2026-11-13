@@ -2,7 +2,7 @@
 
 Explore a 3D home, manage appliance use, and see how your choices change the monthly energy bill.
 
-Live demo: <!-- VERCEL_URL --> · [Repository](https://github.com/VivekTiwary-25/watts-up)
+Live demo: **[watts-up-jade.vercel.app](https://watts-up-jade.vercel.app/)** · [Repository](https://github.com/VivekTiwary-25/watts-up)
 
 ## What it does
 
