@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { AccumulativeShadows, RandomizedLight, Stars, useProgress } from '@react-three/drei'
@@ -6,7 +6,10 @@ import { Selection } from '@react-three/postprocessing'
 import { QUALITY } from '@/data/config'
 import { ApplianceModel } from './ApplianceModel'
 import { CameraRig } from './CameraRig'
+import { Environment } from './Environment'
+import { glbExists } from './glb'
 import { House } from './House'
+import { HouseModel } from './HouseModel'
 import { Effects } from './effects/Effects'
 import { MAINS } from './effects/mains'
 import { lerp } from './effects/useLevel'
@@ -19,7 +22,12 @@ function Meter() {
   return (
     <mesh name="meter" position={METER.position}>
       <boxGeometry args={METER.size} />
-      <meshStandardMaterial color="#2a2f38" emissive="#3bd6a0" emissiveIntensity={0.25} roughness={0.6} />
+      <meshStandardMaterial
+        color="#2a2f38"
+        emissive="#3bd6a0"
+        emissiveIntensity={0.25}
+        roughness={0.6}
+      />
     </mesh>
   )
 }
@@ -51,7 +59,15 @@ function NightSky() {
     <>
       <primitive attach="background" object={texture} />
       <fog attach="fog" args={[QUALITY.fog.color, QUALITY.fog.near, QUALITY.fog.far]} />
-      <Stars radius={S.radius} depth={S.depth} count={S.count} factor={S.factor} saturation={0} fade speed={0} />
+      <Stars
+        radius={S.radius}
+        depth={S.depth}
+        count={S.count}
+        factor={S.factor}
+        saturation={0}
+        fade
+        speed={0}
+      />
     </>
   )
 }
@@ -65,7 +81,9 @@ function RimLight() {
     if (ref.current) ref.current.intensity = R.intensity * lerp(1, R.blackoutKeep, MAINS.blackout)
   })
 
-  return <directionalLight ref={ref} position={[11, 5, -7]} color={R.color} intensity={R.intensity} />
+  return (
+    <directionalLight ref={ref} position={[11, 5, -7]} color={R.color} intensity={R.intensity} />
+  )
 }
 
 /**
@@ -79,7 +97,15 @@ function GroundShadows() {
   return <GroundShadowBake key={bakeKey} frames={G.frames} opacity={G.opacity} scale={G.scale} />
 }
 
-function GroundShadowBake({ frames, opacity, scale }: { frames: number; opacity: number; scale: number }) {
+function GroundShadowBake({
+  frames,
+  opacity,
+  scale,
+}: {
+  frames: number
+  opacity: number
+  scale: number
+}) {
   // the bake needs live shadow maps; <ShadowCache/> freezes them otherwise
   useEffect(() => requestLiveShadows(frames + 10), [frames])
 
@@ -110,15 +136,27 @@ function GroundShadowBake({ frames, opacity, scale }: { frames: number; opacity:
 
 /** Everything inside the Canvas. */
 export function Scene() {
+  // hide the grey-box shell once house.glb is confirmed present (HouseModel renders it)
+  const [houseLoaded, setHouseLoaded] = useState(false)
+  useEffect(() => {
+    let alive = true
+    glbExists('/models/house.glb').then((ok) => alive && setHouseLoaded(ok))
+    return () => {
+      alive = false
+    }
+  }, [])
+
   return (
     <>
       <NightSky />
+      <Environment />
       {/* lights, appliance motion, energy wires, power-cut flicker */}
       <Effects />
       <RimLight />
 
       <Selection>
-        <House />
+        <House hideShell={houseLoaded} />
+        <HouseModel />
         <Meter />
         {ALL_ANCHORS.map((a) => (
           <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
