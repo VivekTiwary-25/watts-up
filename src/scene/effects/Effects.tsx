@@ -1,3 +1,4 @@
+import { Ac } from './Ac'
 import { Fan } from './Fan'
 import { MainsDriver } from './MainsDriver'
 import { RoomLights, SceneLights } from './Lighting'
@@ -12,6 +13,7 @@ export function Effects() {
       <RoomLights />
       <Fan />
       <Tv />
+      <Ac />
     </>
   )
 }
