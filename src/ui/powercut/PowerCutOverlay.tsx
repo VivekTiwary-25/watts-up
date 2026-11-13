@@ -49,6 +49,16 @@ const enterChild = {
   },
 }
 
+const statRow = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
+}
+
+const statItem = {
+  hidden: { opacity: 0, y: 6 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.26, ease: CARD_EASE } },
+}
+
 export function PowerCutOverlay() {
   const phase = useHouse((state) => state.powerCut)
   const setPowerCutPhase = useHouse((state) => state.setPowerCutPhase)
@@ -237,6 +247,7 @@ function ResultCard({ reduced }: { reduced: boolean }) {
           <BatteryGauge hours={hours} />
         </div>
         <StatRow
+          reduced={reduced}
           comfort={`${comfort.score}/${comfort.max}`}
           backup={Number.isFinite(hours) ? formatDuration(hours) : '—'}
           cost={`${formatRupees(cost)}/h`}
@@ -273,15 +284,18 @@ function ResultCard({ reduced }: { reduced: boolean }) {
         </p>
       </Enter>
       <Enter reduced={reduced}>
-        <div className="mt-4 border-t border-white/10 px-2 pt-4">
-          <h3 className="text-balance text-base font-semibold">Best possible combo</h3>
-          <p className="mt-1 text-pretty text-sm">{joinNames(best.picks)}</p>
+        <div className="mt-4 rounded-2xl bg-teal-300/[0.05] pt-3 pb-3 shadow-[inset_0_0_0_1px_rgba(153,246,228,0.14),0_0_24px_rgba(94,234,212,0.06)]">
+          <div className="px-2">
+            <h3 className="text-balance text-base font-semibold">Best possible combo</h3>
+            <p className="mt-1 text-pretty text-sm text-teal-50">{joinNames(best.picks)}</p>
+          </div>
+          <StatRow
+            reduced={reduced}
+            comfort={`${bestComfort.score}/${bestComfort.max}`}
+            backup={formatDuration(best.batteryHours)}
+            cost={`${formatRupees(best.costPerHour)}/h`}
+          />
         </div>
-        <StatRow
-          comfort={`${bestComfort.score}/${bestComfort.max}`}
-          backup={formatDuration(best.batteryHours)}
-          cost={`${formatRupees(best.costPerHour)}/h`}
-        />
         <p className="mt-3 px-2 text-pretty text-sm">{comparison}</p>
         <p className="mt-1 px-2 text-pretty text-sm text-muted-foreground">
           Checked all {comboCount} combinations.
@@ -376,22 +390,35 @@ function Enter({ reduced, children }: { reduced: boolean; children: ReactNode })
   return <motion.div variants={reduced ? undefined : enterChild}>{children}</motion.div>
 }
 
-function StatRow({ comfort, backup, cost }: { comfort: string; backup: string; cost: string }) {
+function StatRow({
+  reduced,
+  comfort,
+  backup,
+  cost,
+}: {
+  reduced: boolean
+  comfort: string
+  backup: string
+  cost: string
+}) {
   return (
-    <div className="mt-3 grid grid-cols-3 gap-2 px-2">
-      <Stat label="Comfort" value={comfort} />
-      <Stat label="Backup" value={backup} />
-      <Stat label="Cost" value={cost} />
-    </div>
+    <motion.div
+      className="mt-3 grid grid-cols-3 gap-2 px-2"
+      variants={reduced ? undefined : statRow}
+    >
+      <Stat reduced={reduced} label="Comfort" value={comfort} />
+      <Stat reduced={reduced} label="Backup" value={backup} />
+      <Stat reduced={reduced} label="Cost" value={cost} />
+    </motion.div>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ reduced, label, value }: { reduced: boolean; label: string; value: string }) {
   return (
-    <div className="min-w-0">
+    <motion.div className="min-w-0" variants={reduced ? undefined : statItem}>
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="tabular-nums text-lg font-semibold tracking-tight">{value}</p>
-    </div>
+    </motion.div>
   )
 }
 
