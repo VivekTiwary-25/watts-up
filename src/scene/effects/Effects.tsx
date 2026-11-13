@@ -1,4 +1,5 @@
 import { Ac } from './Ac'
+import { EnergyWires } from './EnergyWires'
 import { Fan } from './Fan'
 import { Geyser } from './Geyser'
 import { MainsDriver } from './MainsDriver'
@@ -20,6 +21,7 @@ export function Effects() {
       <Fridge />
       <Microwave />
       <Washer />
+      <EnergyWires />
     </>
   )
 }
