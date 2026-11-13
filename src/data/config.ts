@@ -11,7 +11,13 @@ export const TARIFF = {
   currency: '₹',
 }
 export const INVERTER = { name: 'VoltVault 1800', capacityWh: 1800, usableFraction: 0.8 }
-export const POWER_CUT = { picks: 3, minBackupHours: 2, costRatePerUnit: 8, flickerMs: 1400 }
+export const POWER_CUT = {
+  picks: 3,
+  minBackupHours: 2,
+  costRatePerUnit: 8,
+  flickerMs: 1400,
+  messageMs: 3500,
+}
 export const DEFAULT_TARGET_BILL = 1500
 export const TARGET_RANGE = { min: 200, max: 5000, step: 50 }
 export const HOURS = { min: 0, max: 24, step: 0.5 }
@@ -102,7 +108,7 @@ export const QUALITY = {
   fog: { color: '#0e1a33', near: 20, far: 52 },
   stars: { count: 700, radius: 80, depth: 40, factor: 3 },
   rim: { color: '#9fd8ff', intensity: 0.9, blackoutKeep: 0.35 },
-} as const;
+} as const
 
 export const ROOMS: { id: Exclude<RoomId, 'all'>; name: string }[] = [
   { id: 'living', name: 'Living room' },

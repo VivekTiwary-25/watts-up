@@ -18,7 +18,6 @@ import { backupComparison, formatDuration } from './formatDuration'
 import { usePrefersReducedMotion } from './usePrefersReducedMotion'
 
 const REDUCED_FLICKER_MS = 400
-const ERROR_MS = 2000
 
 const vignetteStyle = {
   background:
@@ -118,6 +117,14 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
             : `Select ${open === 1 ? '1 more' : `${open} more`} in the house.`}
         </p>
       </Enter>
+      {shown && (
+        <p
+          className="mt-3 rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-center text-sm font-medium text-amber-100"
+          role="alert"
+        >
+          {shown}
+        </p>
+      )}
       <Enter reduced={reduced}>
         <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label="Backup slots">
           {slots.map((id, index) => (
@@ -167,13 +174,8 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
             {`${watts.toLocaleString('en-IN')} W`}
           </p>
         </div>
-        <p
-          aria-live="assertive"
-          aria-atomic="true"
-          role={shown ? 'alert' : undefined}
-          className="mt-2 min-h-6 px-2 text-sm text-pretty text-destructive"
-        >
-          {shown ?? ''}
+        <p className="mb-2 px-2 text-sm text-muted-foreground" aria-live="polite">
+          Picked {picks.length} of {POWER_CUT.picks}
         </p>
         <button
           type="button"
@@ -181,7 +183,7 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
           disabled={!ready}
           onClick={() => confirmPicks()}
         >
-          Confirm
+          {ready ? `Confirm ${POWER_CUT.picks} appliances` : 'Confirm'}
         </button>
       </Enter>
     </CardShell>
@@ -216,9 +218,35 @@ function ResultCard({ reduced }: { reduced: boolean }) {
           backup={Number.isFinite(hours) ? formatDuration(hours) : '—'}
           cost={`${formatRupees(cost)}/h`}
         />
+        <div className="mt-3 px-2">
+          <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+            <span>Comfort</span>
+            <span>
+              {comfort.score} / {comfort.max}
+            </span>
+          </div>
+          <div
+            role="progressbar"
+            aria-label="Comfort"
+            aria-valuemin={0}
+            aria-valuemax={comfort.max}
+            aria-valuenow={comfort.score}
+            className="h-2 overflow-hidden rounded-full bg-white/10"
+          >
+            <div
+              className="h-full rounded-full bg-emerald-400"
+              style={{ width: `${(comfort.score / comfort.max) * 100}%` }}
+            />
+          </div>
+        </div>
         <p className="mt-3 px-2 text-pretty text-sm">
           <span className="text-muted-foreground">Your picks. </span>
-          {joinNames(picks)}
+          {picks.map((id, index) => (
+            <span key={id} className={best.picks.includes(id) ? 'text-emerald-300' : undefined}>
+              {index > 0 ? ', ' : ''}
+              {APPLIANCE_BY_ID[id].name}
+            </span>
+          ))}
         </p>
       </Enter>
       <Enter reduced={reduced}>
@@ -274,8 +302,8 @@ function CardShell({
   useEffect(() => {
     if (reduced || shakeAt == null) return
     void controls.start({
-      x: [0, -9, 8, -6, 4, -2, 0],
-      transition: { duration: 0.42, ease: 'easeInOut' },
+      x: [0, -10, 10, -8, 8, -4, 4, 0],
+      transition: { duration: 0.45, ease: 'easeInOut' },
     })
   }, [shakeAt, reduced, controls])
 
@@ -330,7 +358,7 @@ function useErrorToast(pickError: { message: string; at: number } | null) {
   useEffect(() => {
     if (at == null || !message) return
     setShown(message)
-    const id = window.setTimeout(() => setShown(null), ERROR_MS)
+    const id = window.setTimeout(() => setShown(null), POWER_CUT.messageMs)
     return () => window.clearTimeout(id)
   }, [at, message])
 
