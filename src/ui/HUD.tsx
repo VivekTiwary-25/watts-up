@@ -8,6 +8,8 @@ import { ApplianceList } from './ApplianceList'
 import { IntroOverlay } from './IntroOverlay'
 import { SoundController } from './SoundController'
 import { PowerCutOverlay } from './powercut'
+import { RoomNav } from './RoomNav'
+import { FirstHint } from './FirstHint'
 
 export function HUD() {
   const intro = useHouse((s) => s.view === 'intro')
@@ -29,8 +31,9 @@ export function HUD() {
             <div className="flex flex-col gap-3">
               <TopBar />
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 sm:flex-1">
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-1 sm:gap-3">
                   <BillPanel />
+                  <RoomNav />
                 </div>
                 <div className="absolute inset-x-3 bottom-3 max-h-[35svh] space-y-2 overflow-y-auto overscroll-contain sm:static sm:max-h-none sm:w-64 sm:shrink-0 sm:overflow-visible md:w-72">
                   <TargetPanel />
@@ -39,6 +42,7 @@ export function HUD() {
               </div>
             </div>
             <ApplianceCard />
+            <FirstHint />
           </motion.div>
         )}
       </AnimatePresence>
