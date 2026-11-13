@@ -22,7 +22,12 @@ function Meter() {
   return (
     <mesh name="meter" position={METER.position}>
       <boxGeometry args={METER.size} />
-      <meshStandardMaterial color="#2a2f38" emissive="#3bd6a0" emissiveIntensity={0.25} roughness={0.6} />
+      <meshStandardMaterial
+        color="#2a2f38"
+        emissive="#3bd6a0"
+        emissiveIntensity={0.25}
+        roughness={0.6}
+      />
     </mesh>
   )
 }
@@ -54,7 +59,15 @@ function NightSky() {
     <>
       <primitive attach="background" object={texture} />
       <fog attach="fog" args={[QUALITY.fog.color, QUALITY.fog.near, QUALITY.fog.far]} />
-      <Stars radius={S.radius} depth={S.depth} count={S.count} factor={S.factor} saturation={0} fade speed={0} />
+      <Stars
+        radius={S.radius}
+        depth={S.depth}
+        count={S.count}
+        factor={S.factor}
+        saturation={0}
+        fade
+        speed={0}
+      />
     </>
   )
 }
@@ -68,7 +81,9 @@ function RimLight() {
     if (ref.current) ref.current.intensity = R.intensity * lerp(1, R.blackoutKeep, MAINS.blackout)
   })
 
-  return <directionalLight ref={ref} position={[11, 5, -7]} color={R.color} intensity={R.intensity} />
+  return (
+    <directionalLight ref={ref} position={[11, 5, -7]} color={R.color} intensity={R.intensity} />
+  )
 }
 
 /**
@@ -82,7 +97,15 @@ function GroundShadows() {
   return <GroundShadowBake key={bakeKey} frames={G.frames} opacity={G.opacity} scale={G.scale} />
 }
 
-function GroundShadowBake({ frames, opacity, scale }: { frames: number; opacity: number; scale: number }) {
+function GroundShadowBake({
+  frames,
+  opacity,
+  scale,
+}: {
+  frames: number
+  opacity: number
+  scale: number
+}) {
   // the bake needs live shadow maps; <ShadowCache/> freezes them otherwise
   useEffect(() => requestLiveShadows(frames + 10), [frames])
 
