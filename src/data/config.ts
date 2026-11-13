@@ -87,7 +87,7 @@ export const VISUALS = {
 /** Render quality tiers + post-processing / atmosphere tunables (T14). */
 export const QUALITY = {
   /** Device-pixel-ratio cap per tier. */
-  dpr: { high: 1.75, low: 1 },
+  dpr: { high: 1.5, low: 1 },
   /** Floor for performance.regress() while the camera moves (fraction of the tier DPR). */
   regressMin: 0.6,
   /** PerformanceMonitor flip-flops before it locks into the low tier for good. */
