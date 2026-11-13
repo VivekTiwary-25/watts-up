@@ -8,6 +8,7 @@ import { ApplianceModel } from './ApplianceModel'
 import { CameraRig } from './CameraRig'
 import { Environment } from './Environment'
 import { House } from './House'
+import { IntroVilla } from './IntroVilla'
 import { Effects } from './effects/Effects'
 import { MAINS } from './effects/mains'
 import { lerp } from './effects/useLevel'
@@ -143,6 +144,8 @@ export function Scene() {
       {/* lights, appliance motion, energy wires, power-cut flicker */}
       <Effects />
       <RimLight />
+      {/* villa exterior + sky, intro view only */}
+      <IntroVilla />
 
       <Selection>
         {/* house.glb (the villa) is the intro exterior only; the rooms stay the clay shell */}
