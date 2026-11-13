@@ -4,6 +4,8 @@ Skills: `threejs`. Read `coord/results/R01-research.md` sections 5-7 and follow 
 
 Files you may touch: `src/scene/effects/**` (new), `src/scene/Scene.tsx` (mount effects), `src/scene/House.tsx` (only light/darkness changes), `src/scene/layout.ts` (add wire/plug points only), `src/App.tsx` (only `frameloop` -> "always" or add invalidation), `src/data/config.ts` (only add a `VISUALS` block of tunables: colors, intensities, wire width per watt), `coord/results/T08-effects.md`.
 
+RESUME NOTE: a previous run was cut off by a network error. It already committed VISUALS tunables, plug points and drive helpers (see `git log`), and left uncommitted `src/scene/effects/MainsDriver.tsx` + `mains.ts`. Review those, keep what works, and continue from there. Do not redo finished steps.
+
 Build, commit after each:
 1. Room lights: when `light` is powered, each room gets warm light + light boxes emissive; when off, rooms dim to a cool moonlight ambient. Smooth intensity lerp in useFrame (instant if reduced motion).
 2. Fan: blade group spins (placeholder: a thin cross of boxes above the fan box), speed eases up/down.
