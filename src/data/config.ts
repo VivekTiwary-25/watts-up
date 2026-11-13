@@ -74,7 +74,8 @@ export const QUALITY = {
   shadowRefreshMs: 1000,
   groundShadow: { frames: 40, opacity: 0.6, scale: 15 },
   sky: { top: '#03060f', mid: '#0a1530', horizon: '#16264a' },
-  fog: { color: '#0e1a33', near: 26, far: 60 },
+  /** Overview camera is ~21 units from the back wall: the far side fades just a touch. */
+  fog: { color: '#0e1a33', near: 20, far: 52 },
   stars: { count: 700, radius: 80, depth: 40, factor: 3 },
   rim: { color: '#9fd8ff', intensity: 0.9, blackoutKeep: 0.35 },
 } as const;
