@@ -351,18 +351,18 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 function useErrorToast(pickError: { message: string; at: number } | null) {
-  const [shown, setShown] = useState<string | null>(null)
   const at = pickError?.at
   const message = pickError?.message
+  const [expiredAt, setExpiredAt] = useState<number | null>(null)
 
   useEffect(() => {
     if (at == null || !message) return
-    setShown(message)
-    const id = window.setTimeout(() => setShown(null), POWER_CUT.messageMs)
+    const id = window.setTimeout(() => setExpiredAt(at), POWER_CUT.messageMs)
     return () => window.clearTimeout(id)
   }, [at, message])
 
-  return shown
+  if (at == null || !message || expiredAt === at) return null
+  return message
 }
 
 function formatRupees(amount: number) {
