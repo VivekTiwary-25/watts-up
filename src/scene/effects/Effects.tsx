@@ -1,6 +1,7 @@
 import { Fan } from './Fan'
 import { MainsDriver } from './MainsDriver'
 import { RoomLights, SceneLights } from './Lighting'
+import { Tv } from './Tv'
 
 /** All "living house" effects. MainsDriver must stay first: useFrame runs in mount order. */
 export function Effects() {
@@ -10,6 +11,7 @@ export function Effects() {
       <SceneLights />
       <RoomLights />
       <Fan />
+      <Tv />
     </>
   )
 }
