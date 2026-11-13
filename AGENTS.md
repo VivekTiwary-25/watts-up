@@ -27,4 +27,5 @@ zustand, motion, gsap + @gsap/react, tailwindcss v4, shadcn/ui, vitest. Path ali
 5. All maths local, no external APIs/services/login/DB. Mock data only.
 6. Respect `prefers-reduced-motion`. Style: dark navy/charcoal, glass panels, clay buttons, restrained glow.
 7. Finish by writing `coord/results/<TASK>.md` (5-15 lines: what you did, files, how to verify, open issues), commit it, then exit.
-8. Skills in `.claude/skills/` / `.agents/skills/`: use the ones your task names.
+8. Write readable code: Prettier-style formatting, multi-line JSX, 2-space indent, no minified one-liners. Run `npm run format` on files you touch if the script exists.
+9. Skills in `.claude/skills/` / `.agents/skills/`: use the ones your task names.
