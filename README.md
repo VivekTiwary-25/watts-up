@@ -7,7 +7,7 @@ People cannot see which appliances drive their electricity bill, or how to cope 
 - The monthly bill updates live as you toggle appliances or change their daily hours.
 - A target bill with a progress ring shows how far under or over target you are.
 - The Power Cut twist: pick exactly 3 appliances for the inverter and get a result card with the best possible combination.
-- A sunset intro around a 3-level Bali hillside villa, then a furnished 3D dollhouse with real, clickable appliance models: click a room to step inside at eye height and look around (Previous / Next / Overview). A Villa / Rooms toggle shows the villa sliced open at the ground floor (section cut).
+- A sunset intro around a 3-level Bali hillside villa, then a furnished 3D dollhouse with real, clickable appliance models: click a room to step inside at eye height and look around (Previous / Next / Overview). A Villa / Rooms toggle flies back to the villa's front view, slowly swaying.
 - Accessibility: `prefers-reduced-motion` is respected and the controls work from the keyboard.
 
 ## Run it
@@ -37,7 +37,7 @@ Open http://localhost:5173. No env vars, no keys, no backend.
 
 - The AC is a stylised placeholder model, not a real scan.
 - The villa is heavy (about 50 MB); it runs best on a laptop with a real GPU.
-- Appliances are interactive in the Rooms view only; the Villa view is a look-only section cut at one height (no per-floor buttons yet).
+- Appliances are interactive in the Rooms view only; the Villa view is look-only.
 - The intro's sunset lighting loads a small HDR from the drei asset CDN; offline it falls back to plain lighting.
 - Tariff, battery and comfort numbers are fictional.
 - Nothing is saved between visits; a reload resets everything.
@@ -69,7 +69,7 @@ Libraries: React, Vite, TypeScript, three, @react-three/fiber, drei, postprocess
 
 Claude Code (an Opus boss agent plus Sonnet subagents), OpenAI Codex (Sol and Luna), Grok, and Claude chat for converting and compressing the 3D models.
 
-**One thing we fixed or changed:** the villa's roof could not be removed, because its 130 parts are all named "Material". We built a section-cut view instead (a clipping plane slices the house at the ground floor). The original 249 MB house was also compressed to about 50 MB so it loads in a browser.
+**One thing we fixed or changed:** the villa's roof could not be removed, because its 130 parts are all named "Material". We kept the villa as the outside view (intro and Villa view) and built the interactive house as a separate cutaway dollhouse. The original 249 MB house was also compressed to about 50 MB so it loads in a browser.
 
 ## Appliances
 

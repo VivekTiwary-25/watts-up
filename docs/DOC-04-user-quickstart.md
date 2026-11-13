@@ -11,7 +11,7 @@ Watt's Up? is a 3D house that shows what each appliance costs you every month. I
 3. Use the Target bill slider to set what you want to spend.
 4. Press **Power Cut**, pick exactly 3 appliances, then press **Confirm**.
 
-Use the Villa / Rooms toggle in the top bar: Villa shows the real house sliced open at the ground floor, Rooms is where you click appliances.
+Use the Villa / Rooms toggle in the top bar: Villa shows the real house from the front, Rooms is where you click appliances.
 
 ## 3. What to expect
 

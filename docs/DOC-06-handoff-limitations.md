@@ -30,7 +30,7 @@ The store's initial state is built from `APPLIANCES` and `config.ts`. Reloading 
 ## Known limitations
 
 - The villa is about 50 MB and heavy on weak GPUs.
-- The villa's roof cannot be removed (130 parts all named "Material"), so the Villa view slices it with a horizontal clipping plane at the ground floor (one height; per-floor buttons are a next step).
+- The villa's roof cannot be removed (130 parts all named "Material"), so the villa is an outside view only (a simplified 3.9 MB copy, `house-lite.glb`); the interactive house is a separate cutaway dollhouse.
 - Credits for the fridge and washer models still read FILL IN.
 
 ## Top three improvements for a real deployment
