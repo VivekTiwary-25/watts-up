@@ -33,7 +33,12 @@ export function WasherModel({ size: [w, h, d], mats }: PlaceholderProps) {
         scale={[0.52, 0.002, 0.52]}
         rot={[QUARTER_TURN, 0, 0]}
       />
-      <Part geo={TORUS} mat={mats.metal} pos={[0, -0.06, front + 0.003]} scale={[0.26, 0.26, 0.26]} />
+      <Part
+        geo={TORUS}
+        mat={mats.metal}
+        pos={[0, -0.06, front + 0.003]}
+        scale={[0.26, 0.26, 0.26]}
+      />
     </group>
   )
 }

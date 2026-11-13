@@ -1,4 +1,6 @@
+import * as THREE from 'three'
 import { Select } from '@react-three/postprocessing'
+import { PLACEHOLDER_MODELS, usePlaceholderMats } from './placeholders'
 import { isPowered, useHouse } from '@/store/useHouse'
 import type { Anchor } from './layout'
 import { useApplianceInteraction, useHighlighted } from './useApplianceInteraction'
@@ -21,7 +23,10 @@ const ON_TINT: Record<Anchor['id'], string> = {
  */
 const STANDBY = { color: '#4f7fb0', intensity: 0.22 } as const
 
-/** Grey placeholder box for an appliance; full hover/click behaviour. */
+const HIT_BOX = new THREE.BoxGeometry(1, 1, 1)
+const HIT_MATERIAL = new THREE.MeshBasicMaterial({ visible: false })
+
+/** Procedural stand-in for an appliance (used until/unless a GLB loads); full hover/click behaviour. */
 export function ApplianceBox({ anchor }: { anchor: Anchor }) {
   const { id, position, size, rotationY = 0 } = anchor
   const powered = useHouse((s) => isPowered(s, id))
@@ -32,17 +37,16 @@ export function ApplianceBox({ anchor }: { anchor: Anchor }) {
   const emissive = powered ? ON_TINT[id] : inCut ? STANDBY.color : '#000000'
   const emissiveIntensity = powered ? 0.55 : inCut ? STANDBY.intensity : 0
 
+  const mats = usePlaceholderMats({ powered, emissive, emissiveIntensity })
+  const Model = PLACEHOLDER_MODELS[id]
+
   return (
     <Select enabled={highlighted}>
-      <mesh name={id} position={position} rotation-y={rotationY} castShadow {...handlers}>
-        <boxGeometry args={size} />
-        <meshStandardMaterial
-          color={powered ? '#c9d0da' : '#6b717c'}
-          roughness={powered ? 0.45 : 0.85}
-          emissive={emissive}
-          emissiveIntensity={emissiveIntensity}
-        />
-      </mesh>
+      <group name={id} position={position} rotation-y={rotationY} {...handlers}>
+        <Model size={size} mats={mats} />
+        {/* invisible pointer target: the full anchor box, so thin parts are easy to hit */}
+        <mesh geometry={HIT_BOX} material={HIT_MATERIAL} scale={size} />
+      </group>
     </Select>
   )
 }
