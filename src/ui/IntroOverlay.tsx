@@ -28,7 +28,7 @@ export function IntroOverlay() {
         Flip switches in a living house and watch your electricity bill react.
       </p>
       <Button
-        className="mt-7 h-12 rounded-xl bg-orange-500 px-8 text-base text-white hover:bg-orange-400"
+        className="mt-7 h-12 rounded-xl bg-orange-500 px-8 text-base text-slate-950 hover:bg-orange-400"
         onClick={() => setView('overview')}
       >
         Step inside
