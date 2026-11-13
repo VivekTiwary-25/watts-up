@@ -8,5 +8,5 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  test: { environment: 'jsdom' },
+  test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'] },
 })
