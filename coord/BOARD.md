@@ -6,9 +6,9 @@ Boss usage: read `coord/usage.json` (from status line). Cutoff: 5h >= 90% -> hea
 | Worker | Model | Task | Status | % left |
 |---|---|---|---|---|
 | Boss | Claude Opus 5.5 (main acct) | plan / review / merge | active | see usage.json |
-| Vachana | Claude 2nd acct (opus for this task; ONE call at a time) | T03 scene grey-box | running 16:10 | not reported by CLI |
-| Codex Sol | gpt-6.1-sol | T02 core logic + tests | running 16:10 | 5h 65% / 7d 68% (shared w/ Luna) |
-| Codex Luna | gpt-6-luna | T04 UI panels | running 16:10 | shared w/ Sol |
+| Vachana | Claude 2nd acct (opus; ONE call at a time) | T08 effects + energy wires | running 16:30 | not reported by CLI |
+| Codex Sol | gpt-6.1-sol | T07 bundle split + loading screen | running 16:20 | 5h 65% / 7d 68% (shared w/ Luna) |
+| Codex Luna | gpt-6-luna | T06 UI behaviour tests | running 16:20 | shared w/ Sol |
 | Grok | xai-oauth/grok-4.7 | T05 Power Cut overlay | running 16:10 | 7d 81% |
 | Antigravity | gemini-3.8-flash | - | BLOCKED: Google disabled acct (403 TOS_VIOLATION) | n/a |
 
@@ -24,3 +24,6 @@ Boss usage: read `coord/usage.json` (from status line). Cutoff: 5h >= 90% -> hea
 ## Done
 - R01 research (Grok) -> coord/results/R01-research.md
 - T01 scaffold (Sol) merged 16:05
+- T02 data/bill/powercut/store, 27 tests (Sol) merged 16:14
+- T04 UI panels (Luna) merged 16:17
+- T03 grey-box scene (Vachana) merged 16:28
