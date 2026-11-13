@@ -47,24 +47,26 @@ describe('power cut', () => {
     expect(batteryHours(picks)).toBeCloseTo(1440 / 265)
     expect(batteryHours(picks, { name: 'Test', capacityWh: 530, usableFraction: 0.5 })).toBe(1)
     expect(batteryHours([])).toBe(Infinity)
-    expect(comfortScore(picks)).toEqual({ score: 10, max: 12 })
+    expect(comfortScore(picks)).toEqual({ score: 10, max: 13 })
     expect(costPerHour(['ac', 'fridge', 'fan'])).toBeCloseTo(1.725 * 8)
     expect(costPerHour([])).toBe(0)
   })
 
   it('generates every unique valid combination', () => {
     const combos = allCombos()
-    expect(combos).toHaveLength(56)
+    expect(combos).toHaveLength(120)
     expect(combos.every(isValidSelection)).toBe(true)
-    expect(new Set(combos.map((combo) => [...combo].sort().join(','))).size).toBe(56)
+    expect(new Set(combos.map((combo) => [...combo].sort().join(','))).size).toBe(120)
   })
 
   it('chooses the highest comfort with enough backup, then the longest runtime', () => {
+    // the 12 W router is the smart pick: same comfort as the fan for a sixth of the load
+    const smart: ApplianceId[] = ['fridge', 'router', 'light']
     const best = bestCombo()
-    expect([...best.picks].sort()).toEqual([...picks].sort())
-    expect(best.comfort).toBe(10)
-    expect(best.batteryHours).toBeCloseTo(1440 / 265)
-    expect(best.costPerHour).toBeCloseTo(costPerHour(picks))
+    expect([...best.picks].sort()).toEqual([...smart].sort())
+    expect(best.comfort).toBe(11)
+    expect(best.batteryHours).toBeCloseTo(1440 / 202)
+    expect(best.costPerHour).toBeCloseTo(costPerHour(smart))
     const eligible = allCombos().filter((combo) => batteryHours(combo) >= POWER_CUT.minBackupHours)
     for (const combo of eligible) {
       expect(comfortScore(combo).score).toBeLessThanOrEqual(best.comfort)

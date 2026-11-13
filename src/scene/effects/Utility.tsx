@@ -94,6 +94,70 @@ export function Stove() {
   )
 }
 
+const mw = anchorOf('microwave')
+const windowGeo = new THREE.PlaneGeometry(mw.size[0] * 0.58, mw.size[1] * 0.66)
+const MW_GLOW = new THREE.Color(VISUALS.microwave.glow)
+const MW_DARK = new THREE.Color('#0b0d10')
+export function Microwave() {
+  const level = useLevel('microwave')
+  const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: MW_DARK, toneMapped: false }), [])
+  useDispose(mat)
+  useFrame(({ clock }) => {
+    const hum = MOTION.reduce ? 1 : 0.92 + 0.08 * Math.sin(clock.elapsedTime * 11)
+    mat.color
+      .copy(MW_DARK)
+      .lerp(MW_GLOW, Math.min(1, level.v * hum))
+      .multiplyScalar(1 + (VISUALS.microwave.intensity - 1) * level.v)
+  })
+  return (
+    <Front anchor={mw}>
+      <mesh
+        geometry={windowGeo}
+        material={mat}
+        position={[-mw.size[0] * 0.12, 0, 0]}
+        raycast={() => null}
+      />
+      <StatusLed level={level} position={[mw.size[0] / 2 - 0.07, mw.size[1] / 2 - 0.07, 0]} />
+    </Front>
+  )
+}
+
+const router = anchorOf('router')
+const routerLedGeo = new THREE.SphereGeometry(0.008, 8, 6)
+const ROUTER_LEDS = [-0.3, -0.1, 0.1, 0.3]
+/** Row of activity LEDs on the router's front edge; each blinks on its own rhythm while online. */
+export function Router() {
+  const level = useLevel('router')
+  const mats = useMemo(
+    () => ROUTER_LEDS.map(() => new THREE.MeshBasicMaterial({ color: LED.off, toneMapped: false })),
+    [],
+  )
+  useDispose(...mats)
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime * VISUALS.router.blinkHz
+    mats.forEach((mat, i) => {
+      // the first LED is the steady power light; the rest flicker like traffic
+      const blink =
+        i === 0 || MOTION.reduce ? 1 : Math.sin(t * (1 + i * 0.37) + i * 1.7) > -0.2 ? 1 : 0.25
+      mat.color.copy(LED_OFF).lerp(LED_ON, level.v * blink)
+    })
+  })
+  const [w, h] = router.size
+  return (
+    <Front anchor={router}>
+      {ROUTER_LEDS.map((k, i) => (
+        <mesh
+          key={k}
+          geometry={routerLedGeo}
+          material={mats[i]}
+          position={[k * w, -h / 2 + h * 0.15, 0]}
+          raycast={() => null}
+        />
+      ))}
+    </Front>
+  )
+}
+
 const washer = anchorOf('washer')
 const doorGeo = new THREE.CircleGeometry(0.24, 32)
 const paddleGeo = new THREE.BoxGeometry(0.4, 0.05, 0.01)

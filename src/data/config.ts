@@ -55,6 +55,8 @@ export const VISUALS = {
   geyser: { tint: '#ff8a4a', opacity: 0.45, scroll: 0.12 },
   led: { on: '#4dff9a', off: '#3a1d1d', glow: 2.5 },
   stove: { glow: '#ff6a2a', intensity: 2.4 },
+  microwave: { glow: '#ffb45a', intensity: 1.8 },
+  router: { blinkHz: 3.2 },
   washer: { maxSpin: 9 },
   /** Power-cut pick feedback: red flash on a blocked pick, green halo under picked appliances. */
   pick: {

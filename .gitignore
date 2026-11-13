@@ -6,3 +6,4 @@ dist
 coord/logs/
 coord/usage.json
 public/models/raw/
+public/models/*.zip

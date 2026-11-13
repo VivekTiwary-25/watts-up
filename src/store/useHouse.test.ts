@@ -124,7 +124,7 @@ describe('house store', () => {
   it('memoizes the bill by switches and hours', () => {
     const { result, rerender } = renderHook(useBill)
     const initial = result.current
-    expect(initial.total).toBeCloseTo(798.2)
+    expect(initial.total).toBeCloseTo(850.04)
     act(() => useHouse.getState().setTarget(2000))
     rerender()
     expect(result.current).toBe(initial)

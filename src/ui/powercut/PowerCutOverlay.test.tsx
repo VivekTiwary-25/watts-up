@@ -97,12 +97,12 @@ test('confirm moves a valid selection to the result', () => {
   render(<PowerCutOverlay />)
   fireEvent.click(screen.getByRole('button', { name: 'Confirm 3 appliances' }))
   expect(useHouse.getState().powerCut).toBe('result')
-  expect(screen.getByText('Yours lasts 4h 36m less').textContent).toBe('Yours lasts 4h 36m less')
-  expect(screen.getByText('Checked all 56 combinations.').textContent).toBe(
-    'Checked all 56 combinations.',
+  expect(screen.getByText('Yours lasts 6h 18m less').textContent).toBe('Yours lasts 6h 18m less')
+  expect(screen.getByText('Checked all 120 combinations.').textContent).toBe(
+    'Checked all 120 combinations.',
   )
-  expect(screen.getByText('12/12').textContent).toBe('12/12')
-  expect(screen.getByText('10/12').textContent).toBe('10/12')
+  expect(screen.getByText('12/13').textContent).toBe('12/13')
+  expect(screen.getByText('11/13').textContent).toBe('11/13')
   expect(screen.getByRole('progressbar', { name: 'Comfort' }).getAttribute('aria-valuenow')).toBe(
     '12',
   )
@@ -115,7 +115,7 @@ test('restore power ends the cut and try again returns to choosing', () => {
   const savedOn = { ...useHouse.getState().on, ac: true }
   useHouse.setState({
     powerCut: 'result',
-    picks: ['fan', 'fridge', 'light'],
+    picks: ['fridge', 'router', 'light'],
     savedOn,
     on: { ...savedOn, ac: false },
   })
@@ -126,7 +126,7 @@ test('restore power ends the cut and try again returns to choosing', () => {
 
   fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
   expect(useHouse.getState().powerCut).toBe('choosing')
-  expect(useHouse.getState().picks).toEqual(['fan', 'fridge', 'light'])
+  expect(useHouse.getState().picks).toEqual(['fridge', 'router', 'light'])
 
   act(() => {
     useHouse.setState({ powerCut: 'result' })
