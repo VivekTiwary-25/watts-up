@@ -8,6 +8,7 @@ import { useHouse } from '@/store/useHouse'
 import { ApplianceModel } from './ApplianceModel'
 import { CameraRig } from './CameraRig'
 import { Environment } from './Environment'
+import { Furniture } from './Furniture'
 import { House } from './House'
 import { IntroVilla } from './IntroVilla'
 import { Effects } from './effects/Effects'
@@ -158,6 +159,7 @@ export function Scene() {
         {/* the clay rooms hide while the intro or the villa view shows the villa */}
         <group visible={rooms}>
           <House />
+          <Furniture />
           <Meter />
           {ALL_ANCHORS.map((a) => (
             <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
