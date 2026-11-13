@@ -11,11 +11,16 @@ if (-not (Test-Path $wt)) {
   git clone -q $repo $wt 2>&1 | Out-Null
   git -C $wt checkout -q -b $Branch 2>&1 | Out-Null
 }
-# share node_modules from main checkout (no new deps rule)
-if (-not $NoJunction -and (Test-Path "$repo\node_modules") -and -not (Test-Path "$wt\node_modules")) {
-  cmd /c mklink /J "$wt\node_modules" "$repo\node_modules" | Out-Null
+# own node_modules per clone (sandboxed tools can't write a shared one)
+if (-not $NoJunction -and (Test-Path "$wt\package-lock.json") -and -not (Test-Path "$wt\node_modules")) {
+  Push-Location $wt; npm ci --prefer-offline --no-audit --no-fund *> $null; Pop-Location
 }
-$prompt = "You are a worker on a hackathon repo. Read AGENTS.md, coord/CONTRACT.md and coord/tasks/$Task.md, then do exactly that task in this directory (your own git clone, branch $Branch). Only modify files inside this directory. Commit small real steps as you go. Do not push or merge. When done write coord/results/$Task.md, commit it, and exit."
+$prompt = "You are a worker on a hackathon repo. Read AGENTS.md, coord/CONTRACT.md and coord/tasks/$Task.md, then do exactly that task in this directory (your own git clone, branch $Branch). Only modify files inside this directory. Do not push or merge. "
+if ($Worker -in 'sol','luna') {
+  $prompt += "Your sandbox cannot write .git, so do NOT run git commit. Instead, as you finish each small working step, append one line to coord/results/$Task.commits in the form '<conventional commit message> | <space-separated file or folder paths>' (paths relative to repo root, in the order they should be committed; aim for 6-12 small commits). The boss commits them. When done write coord/results/$Task.md and exit."
+} else {
+  $prompt += "Commit each small working step yourself with a conventional message (aim for 6-12 small commits). When done write coord/results/$Task.md, commit it, and exit."
+}
 Set-Location $wt
 "=== $(Get-Date -Format s) START $Worker $Task in $wt" | Out-File $log -Encoding utf8
 switch ($Worker) {
