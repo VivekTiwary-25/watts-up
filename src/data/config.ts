@@ -36,18 +36,29 @@ export const VISUALS = {
   easeRate: 4,
   lights: {
     warm: '#ffc98a',
-    warmIntensity: 6,
+    warmIntensity: 7,
     warmDistance: 6,
     panel: '#ffe2b0',
     panelIntensity: 2.2,
+    /** One warm pool light per room, at the room centre, filling it when the lights are on. */
+    pool: '#ffb36e',
+    poolIntensity: 5,
+    poolHeight: 1.8,
+    poolDistance: 5.5,
+    /** Per-room fill speed (ease rate, 1/s) so switching on cascades room by room. */
+    poolRates: [6, 4.2, 3.2, 2.5],
+    /** Tube light (kitchen, bathroom) rect light intensity. */
+    tubeIntensity: 4,
   },
   ambient: {
     // [lights on, lights off (moonlight), power cut (dark)]
-    hemiSky: ['#b8c4d8', '#7d93c4', '#3a4866'],
-    hemiIntensity: [0.55, 0.32, 0.06],
-    ambientIntensity: [0.25, 0.12, 0.02],
-    sun: ['#ffffff', '#a9bce8', '#6d7fae'],
-    sunIntensity: [1.6, 0.7, 0.18],
+    hemiSky: ['#8e9fc2', '#4f6497', '#1c2438'],
+    hemiGround: ['#3a2b1e', '#11141c', '#050608'],
+    hemiIntensity: [0.32, 0.16, 0.03],
+    ambientIntensity: [0.1, 0.04, 0.008],
+    // the directional "sun" is the moon: cool, low, casting the house's shadows
+    sun: ['#c4d0ee', '#8ea4dc', '#4f5f8c'],
+    sunIntensity: [0.75, 0.5, 0.08],
   },
   fan: { maxSpin: 14 },
   tv: { screen: '#cceeff', intensity: 2.5, flicker: 0.12 },
@@ -93,15 +104,17 @@ export const QUALITY = {
   /** PerformanceMonitor flip-flops before it locks into the low tier for good. */
   flipflops: 3,
   multisampling: { high: 2, low: 0 },
-  ao: { radius: 0.5, distanceFalloff: 0.6, intensity: 1.6, quality: 'medium' },
+  /** High tier only. Subtle contact shading; half-res keeps it cheap on laptop GPUs. */
+  ao: { radius: 0.45, distanceFalloff: 0.6, intensity: 1.1, quality: 'medium', halfRes: true },
   bloom: {
-    intensity: { high: 0.55, low: 0.35 },
-    threshold: 0.7,
-    smoothing: 0.2,
+    intensity: { high: 0.7, low: 0.45 },
+    /** Low enough that the geyser lamp, TV and fixture glows bloom; lit walls mostly don't. */
+    threshold: 0.62,
+    smoothing: 0.3,
     /** Mip levels: fewer = cheaper and tighter. */
-    levels: { high: 7, low: 4 },
+    levels: { high: 6, low: 4 },
   },
-  vignette: { offset: 0.28, darkness: 0.55 },
+  vignette: { offset: 0.24, darkness: 0.68 },
   /** Shadow-map refresh: re-render shadows this often (ms) instead of every frame. */
   shadowRefreshMs: 1000,
   groundShadow: { frames: 40, opacity: 0.6, scale: 15 },
@@ -109,7 +122,7 @@ export const QUALITY = {
   /** Overview camera is ~21 units from the back wall: the far side fades just a touch. */
   fog: { color: '#0e1a33', near: 20, far: 52 },
   stars: { count: 700, radius: 80, depth: 40, factor: 3 },
-  rim: { color: '#9fd8ff', intensity: 0.9, blackoutKeep: 0.35 },
+  rim: { color: '#8fc4ff', intensity: 0.6, blackoutKeep: 0.3 },
 } as const
 
 export const ROOMS: { id: Exclude<RoomId, 'all'>; name: string }[] = [
