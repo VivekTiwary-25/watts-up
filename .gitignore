@@ -4,3 +4,4 @@ dist
 *.local
 .env*
 coord/logs/
+coord/usage.json
