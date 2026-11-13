@@ -1,0 +1,15 @@
+# T14 - Realism + adaptive performance - result
+
+**Done:** There is now one EffectComposer (`src/scene/PostFX.tsx`, inside `<Selection>`). Pass order: N8AO (radius 0.5) -> Bloom (mipmapBlur, threshold 0.7) -> AgX ToneMapping -> Outline -> Vignette. The renderer uses `NoToneMapping` with `antialias: false`, so MSAA happens in the composer only. Shadows: `AccumulativeShadows` bakes 40 frames and then stops, and it re-bakes once after all assets finish loading. The directional light's shadow map is cached (`autoUpdate=false`) and refreshes when the store changes, once every 1 s, and while a bake is running. The old `ContactShadows`, which re-rendered depth every frame, is gone. `Quality.tsx` has three parts: a PerformanceMonitor tier (decline -> low, incline -> high, fallback -> locked low), a tier-aware adaptive DPR, and `performance.regress()` on CameraControls `control` events. Also added: a night-sky gradient background, fog, 700 static drei Stars, and a cool rim light from the meter side that keeps 35% during a power cut. Materials: clay walls in 3 roughness/tint variants, warm dark wood floors (bathroom is stone) with sheen and a thin clearcoat, and dark skirting.
+
+**Files:** `src/App.tsx`, `src/scene/{Scene,PostFX,Quality,House}.tsx`, `src/scene/useQuality.ts`, `src/data/config.ts` (`QUALITY` block only).
+
+**Deviations:** (1) The store is named `useQuality.ts`, not `quality.ts`, because `quality.ts` and `Quality.tsx` collide on case-insensitive Windows (TS1149). (2) I removed `ContactShadows` from `House.tsx` (strictly a shadow change, not a material one) to avoid doubled shadows and its per-frame cost. (3) `LoadingScreen` is NOT mounted: models are HEAD-probed before `useGLTF` runs, so it would pop up over a scene that is already showing, and with no models it would stick at 0%.
+
+**Low tier disables:** N8AO is off, MSAA goes 2 -> 0, DPR is capped at 1 (high tier: 1.75), and bloom drops to 4 mip levels at lower intensity. The tier monitor is skipped under reduced motion, because demand frames would read as "slow".
+
+**Expected frame time (estimate, not measured):** Removing ContactShadows and the per-frame shadow-map render saves about 1-2 ms. N8AO medium at full res adds about 1.5-3 ms on a mid GPU, and bloom about 0.5 ms. Net, high tier should be roughly equal to or slightly slower than before; low tier should be clearly cheaper than before. The bake costs about 40 cheap frames (<1 s) at start.
+
+**Verify:** `npm test` (63 pass) and `npm run build` both pass. In `npm run dev`, check: glow around lamps and wires; soft floor shadows that settle within about 1 s; the outline still shows on hover; dragging the camera briefly softens resolution; in a power cut the house goes dark with a faint moonlit rim.
+
+**Open issues:** Not checked in a browser (no headless browser here), so bloom threshold and AO intensity may need tuning in `QUALITY`. Shadows of spinning fan/washer parts update only once per second (`QUALITY.shadowRefreshMs`). During the <1 s bake, drei's AccumulativeShadows restores scene light intensities from mount time, so a power cut started in that window may flash briefly.
