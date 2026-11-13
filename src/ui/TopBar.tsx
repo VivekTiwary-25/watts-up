@@ -1,0 +1,4 @@
+import { ArrowLeft, Volume2, VolumeX, Zap } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useHouse } from '@/store/useHouse'
+export function TopBar(){ const view=useHouse(s=>s.view), back=useHouse(s=>s.backToOverview), start=useHouse(s=>s.startPowerCut), muted=useHouse(s=>s.muted), mute=useHouse(s=>s.toggleMute); return <header className="glass pointer-events-auto flex items-center gap-2 rounded-2xl p-2"><h1 className="mr-auto px-2 text-lg font-semibold tracking-tight">Watt's Up?</h1>{view==='room'&&<Button variant="ghost" onClick={back}><ArrowLeft/> Back to overview</Button>}<Button variant="secondary" onClick={start}><Zap/> Power cut</Button><Button variant="ghost" size="icon" aria-label={muted?'Unmute':'Mute'} onClick={mute}>{muted?<VolumeX/>:<Volume2/>}</Button></header> }
