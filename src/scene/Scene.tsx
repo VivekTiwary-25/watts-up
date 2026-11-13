@@ -5,6 +5,7 @@ import { House } from './House'
 import { Effects } from './effects/Effects'
 import { ALL_ANCHORS, METER } from './layout'
 import { PostFX } from './PostFX'
+import { Quality } from './Quality'
 
 function Meter() {
   return (
@@ -35,6 +36,8 @@ export function Scene() {
       </Selection>
 
       <CameraRig />
+      {/* after CameraRig so `controls` exists for camera-move DPR regress */}
+      <Quality />
     </>
   )
 }

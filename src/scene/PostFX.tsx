@@ -8,7 +8,7 @@ import {
 } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import { QUALITY } from '@/data/config'
-import { useQuality } from './quality'
+import { useQuality } from './useQuality'
 
 const B = QUALITY.bloom
 

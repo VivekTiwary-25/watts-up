@@ -20,3 +20,18 @@ export const useQuality = create<QualityState>((set, get) => ({
   },
   lockLow: () => set({ tier: 'low', locked: true }),
 }))
+
+/**
+ * Shadow maps are cached (renderer.shadowMap.autoUpdate = false, see <ShadowCache/>).
+ * Anything that needs live shadow maps for a while (e.g. AccumulativeShadows while it
+ * bakes) asks for N frames of live updates here.
+ */
+export const SHADOWS = { liveFrames: 0, dirty: true }
+
+export function requestLiveShadows(frames: number) {
+  SHADOWS.liveFrames = Math.max(SHADOWS.liveFrames, frames)
+}
+
+export function markShadowsDirty() {
+  SHADOWS.dirty = true
+}
