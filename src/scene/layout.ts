@@ -45,6 +45,10 @@ export const ROOMS: Record<Room, RoomLayout> = {
 export const ROOM_IDS = Object.keys(ROOMS) as Room[]
 
 export const OVERVIEW = { cameraPos: [0, 13, 12] as Vec3, cameraTarget: [0, 0, 0.3] as Vec3 }
+export const INTRO_CAMERA = {
+  start: { cameraPos: [0, 1.7, 19] as Vec3, cameraTarget: [0, 1.2, 0] as Vec3 },
+  end: { cameraPos: [1.2, 1.7, 19] as Vec3, cameraTarget: [0, 1.2, 0] as Vec3 },
+} as const
 
 export interface Anchor {
   id: ApplianceId
