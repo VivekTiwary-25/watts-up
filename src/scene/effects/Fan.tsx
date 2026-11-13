@@ -6,15 +6,17 @@ import { MOTION } from './mains'
 import { anchorOf, useLevel } from './useLevel'
 
 const fan = anchorOf('fan')
-const bladeGeo = new THREE.BoxGeometry(1.1, 0.025, 0.14)
-const hubGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.05, 16)
+const BLADE_LEN = 0.5
+// blade extends along +x from the hub; three of them are placed 120° apart
+const bladeGeo = new THREE.BoxGeometry(BLADE_LEN, 0.02, 0.15)
+bladeGeo.translate(0.1 + BLADE_LEN / 2, 0, 0)
 const bladeMat = new THREE.MeshStandardMaterial({
   color: '#c9ced8',
   roughness: 0.5,
   metalness: 0.2,
 })
 
-/** Ceiling-fan blades (placeholder cross) sitting on the fan box; spin eases with power. */
+/** Ceiling-fan blades (3, under the motor housing of the placeholder) sitting on the fan box; spin eases with power. */
 export function Fan() {
   const level = useLevel('fan')
   const blades = useRef<THREE.Group>(null)
@@ -26,10 +28,17 @@ export function Fan() {
 
   const [x, y, z] = fan.position
   return (
-    <group ref={blades} position={[x, y + fan.size[1] / 2 + 0.03, z]}>
-      <mesh geometry={hubGeo} material={bladeMat} castShadow />
-      <mesh geometry={bladeGeo} material={bladeMat} castShadow />
-      <mesh geometry={bladeGeo} material={bladeMat} rotation-y={Math.PI / 2} castShadow />
+    <group ref={blades} position={[x, y - fan.size[1] / 2 + 0.02, z]}>
+      {[0, 1, 2].map((i) => (
+        <mesh
+          key={i}
+          geometry={bladeGeo}
+          material={bladeMat}
+          rotation-y={(i * Math.PI * 2) / 3}
+          rotation-z={0.08}
+          castShadow
+        />
+      ))}
     </group>
   )
 }
