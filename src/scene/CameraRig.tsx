@@ -22,6 +22,15 @@ export function CameraRig() {
     void c.setLookAt(...shot.cameraPos, ...shot.cameraTarget, animate)
   }, [view, focusRoom])
 
+  // Esc → back to overview (UI back button lives in T04).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && useHouse.getState().view === 'room') useHouse.getState().backToOverview()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
     <CameraControls
       ref={ref}
