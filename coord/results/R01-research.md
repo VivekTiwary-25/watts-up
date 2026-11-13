@@ -36,11 +36,11 @@ export async function glbExists(url: string) {
   if (!res.ok) return false
   return !(res.headers.get('content-type') ?? '').includes('text/html')
 }
-// if (!ok) <BoxPlaceholder />; else
-<ErrBoundary fallback={<BoxPlaceholder />}>
-  <Suspense fallback={null}><Model url={url} /></Suspense>
-</ErrBoundary>
-// if (!ok) placeholder; else <ErrBoundary><Suspense><Model url={url} /></Suspense></ErrBoundary>
+// if (!ok) placeholder; else <ErrBoundary><Suspense><Model /></Suspense></ErrBoundary>
+function Model({ url }: { url: string }) {
+  const { scene } = useGLTF(url) // useDraco + useMeshopt default true
+  return <primitive object={scene} />
+}
 ```
 
 ## 4. Hide roof / ceiling
@@ -89,14 +89,6 @@ useFrame((_, dt) => {
 Pass order = JSX order: AO, bloom, tone map. Renderer `NoToneMapping` or you clamp before bloom and tone-map twice. `N8AO` does not want `enableNormalPass` (that is SSAO, an extra full render). Default `aoRadius={5}` is too big for a room. Prefer `AccumulativeShadows` (bakes, then stops) over live `SoftShadows`: on current three, `SoftShadows` forces `BasicShadowMap` and dispose-walks every material. `AdaptiveDpr` drops only while `performance.regress()` is active — `CameraControls` has no `regress` prop, call it from `onControl`. `PerformanceMonitor` is the sustained-fps path. Keep AgX; ACES is `ToneMappingMode.ACES_FILMIC`. TV still needs `toneMapped={false}`.
 
 ```tsx
-<Canvas shadows dpr={[1, 1.75]} performance={{ min: 0.5 }}
-  gl={{ antialias: false, toneMapping: THREE.NoToneMapping }}>
-  <AccumulativeShadows temporal frames={40} alphaTest={0.8} scale={12} position={[0, 0.01, 0]}>
-    <RandomizedLight amount={6} radius={4} position={[4, 8, 2]} />
-  </AccumulativeShadows>
-  <PerformanceMonitor bounds={(hz) => (hz > 90 ? [50, 90] : [40, 58])} flipflops={3}
-    onDecline={() => setLow(true)} onFallback={() => setLow(true)} />
-```tsx
 <Canvas shadows dpr={[1, 1.75]} performance={{ min: 0.5 }} gl={{ antialias: false, toneMapping: THREE.NoToneMapping }}>
   <AccumulativeShadows temporal frames={40} alphaTest={0.8} scale={12} position={[0, 0.01, 0]}>
     <RandomizedLight amount={6} radius={4} position={[4, 8, 2]} />
@@ -110,6 +102,13 @@ Pass order = JSX order: AO, bloom, tone map. Renderer `NoToneMapping` or you cla
   </EffectComposer>
 </Canvas>
 ```
+
+## 8. Compress
+
+`optimize` defaults `--simplify --join --flatten`, which merges named roof/appliance nodes. Don't use that on `house.glb`. Meshopt, not Draco: the decoder is already in drei (`useMeshopt` defaults true). Draco fetches `https://www.gstatic.com/draco/versioned/decoders/1.5.5/` and dies offline. WebP inside a GLB needs no extra loader. Don't Draco and Meshopt the same file. Load with `useGLTF(url)`.
+
+```bash
+npx @gltf-transform/cli resize in.glb t1.glb --width 1024 --height 1024
 npx @gltf-transform/cli webp t1.glb t2.glb
 npx @gltf-transform/cli meshopt t2.glb out.glb --level medium
 ```

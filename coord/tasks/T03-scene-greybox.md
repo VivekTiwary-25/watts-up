@@ -1,6 +1,6 @@
 # T03 — 3D grey-box house + interaction (worker: Vachana Claude) · branch `t03-scene`
 
-Skills: use `threejs` and `gsap-react`. Build the dollhouse scene with placeholders. Code against the store API in `coord/CONTRACT.md` (Store). T02 is building the store in parallel: create a TEMPORARY stub `src/store/useHouse.ts` matching the contract exactly only if it doesn't exist, and note in your result that it must be replaced by T02's version at merge (boss will take T02's file).
+Skills: use `threejs` and `gsap-react`. Read `coord/results/R01-research.md` sections 1-3 first (hover outline via postprocessing Selection/Outline, CameraControls.setLookAt, GLB probe + fallback) and follow them; ignore its "don't install @types/three" line. Build the dollhouse scene with placeholders. Code against the store API in `coord/CONTRACT.md` (Store). T02 is building the store in parallel: create a TEMPORARY stub `src/store/useHouse.ts` matching the contract exactly only if it doesn't exist, and note in your result that it must be replaced by T02's version at merge (boss will take T02's file).
 
 Files you may touch: `src/scene/**` (new), `src/App.tsx` (only to mount `<Scene />` in the Canvas area), `src/store/useHouse.ts` (stub only), `coord/results/T03-scene.md`.
 
