@@ -48,8 +48,9 @@ type FitAxis = 'x' | 'y' | 'xz'
 /**
  * Real-world size per model file: the model's bounding box along `axis` is scaled to `metres`
  * ('xz' = the larger of x and z). Files not listed fit uniformly inside the anchor box.
+ * `yaw` turns a model whose own front is not +z so that it faces the anchor's +z.
  */
-const FIT_BY_FILE: Record<string, { axis: FitAxis; metres: number }> = {
+const FIT_BY_FILE: Record<string, { axis: FitAxis; metres: number; yaw?: number }> = {
   'fan.glb': { axis: 'x', metres: 1.4 },
   'light.glb': { axis: 'x', metres: 0.45 },
   'chandelier.glb': { axis: 'x', metres: 0.8 },
@@ -57,10 +58,12 @@ const FIT_BY_FILE: Record<string, { axis: FitAxis; metres: number }> = {
   'stove.glb': { axis: 'y', metres: 0.9 },
   'washer.glb': { axis: 'y', metres: 0.85 },
   'tv.glb': { axis: 'x', metres: 1.2 },
-  'fridge.glb': { axis: 'y', metres: 1.8 },
+  // the door panel sits on the file's -x face
+  'fridge.glb': { axis: 'y', metres: 1.8, yaw: Math.PI / 2 },
   'microwave.glb': { axis: 'x', metres: 0.5 },
   'geyser.glb': { axis: 'y', metres: 0.6 },
-  'router.glb': { axis: 'xz', metres: 0.25 },
+  // antennas on the file's -x side, indicator block on +x (its front)
+  'router.glb': { axis: 'xz', metres: 0.25, yaw: -Math.PI / 2 },
 }
 
 const fileOf = (url: string) => url.slice(url.lastIndexOf('/') + 1)
@@ -164,7 +167,7 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
   const spin = SPIN_NODES[anchor.id]
 
   // Clone (cache is shared, e.g. 2 tube lights), scale to real-world size, centre on the anchor.
-  const { object, scale, offset, hitSize, glows, spinNode } = useMemo(() => {
+  const { object, scale, offset, hitSize, glows, spinNode, yaw } = useMemo(() => {
     const object = scene.clone(true)
     object.traverse((o) => {
       if (!(o as THREE.Mesh).isMesh) return
@@ -180,7 +183,8 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
     const offset: Vec3 = [-center.x * scale, -center.y * scale, -center.z * scale]
     const hitSize: Vec3 = [dims.x * scale, dims.y * scale, dims.z * scale]
     const spinNode = spin ? object.getObjectByName(spin.node) : undefined
-    return { object, scale, offset, hitSize, glows, spinNode }
+    const yaw = FIT_BY_FILE[file]?.yaw ?? 0
+    return { object, scale, offset, hitSize, glows, spinNode, yaw }
   }, [scene, url, anchor, spin])
 
   useFrame((_, dt) => {
@@ -214,8 +218,10 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
         rotation-y={anchor.rotationY ?? 0}
         {...handlers}
       >
-        <primitive object={object} position={offset} scale={scale} />
-        <mesh geometry={HIT_BOX} material={HIT_MATERIAL} scale={hitSize} />
+        <group rotation-y={yaw}>
+          <primitive object={object} position={offset} scale={scale} />
+          <mesh geometry={HIT_BOX} material={HIT_MATERIAL} scale={hitSize} />
+        </group>
       </group>
     </Select>
   )

@@ -64,8 +64,38 @@ describe('layout', () => {
     }
   })
 
-  it('walls are full height and leave door gaps', () => {
-    expect(WALLS.every((w) => w.size[1] === WALL.height)).toBe(true)
+  it('no appliance pokes into a wall', () => {
+    const world = (a: (typeof ALL_ANCHORS)[number]) => {
+      const turned = Math.abs(Math.sin(a.rotationY ?? 0)) > 0.5
+      const [w, d] = turned ? [a.size[2], a.size[0]] : [a.size[0], a.size[2]]
+      return {
+        min: [a.position[0] - w / 2, a.position[1] - a.size[1] / 2, a.position[2] - d / 2],
+        max: [a.position[0] + w / 2, a.position[1] + a.size[1] / 2, a.position[2] + d / 2],
+      }
+    }
+    for (const a of ALL_ANCHORS) {
+      const b = world(a)
+      for (const wall of WALLS) {
+        const overlap = [0, 1, 2].every(
+          (k) =>
+            b.min[k] < wall.position[k] + wall.size[k] / 2 - 1e-6 &&
+            wall.position[k] - wall.size[k] / 2 + 1e-6 < b.max[k],
+        )
+        expect(overlap, `${a.id}/${a.room} vs wall at ${wall.position}`).toBe(false)
+      }
+    }
+  })
+
+  it('walls are at most full height and leave door gaps', () => {
+    expect(WALLS.every((w) => w.size[1] <= WALL.height)).toBe(true)
+    // the far outer walls stay full height: wall-mounted appliances hang on them
+    const far = WALLS.filter(
+      (w) =>
+        Math.abs(w.position[2] + FLOOR.depth / 2) < 1e-6 ||
+        Math.abs(Math.abs(w.position[0]) - FLOOR.width / 2) < 1e-6,
+    )
+    expect(far.length).toBeGreaterThanOrEqual(3)
+    expect(far.every((w) => w.size[1] === WALL.height)).toBe(true)
     expect(WALLS.length).toBeGreaterThan(7) // 7 wall lines + splits for doors
   })
 
