@@ -32,6 +32,17 @@ describe('layout', () => {
     expect(LIGHT_ANCHORS.map((a) => a.room).sort()).toEqual([...ROOM_IDS].sort())
   })
 
+  it('tube lights hang high on the inside of the east wall', () => {
+    const tubes = LIGHT_ANCHORS.filter((a) => a.model === 'tubelight.glb')
+    expect(tubes.map((a) => a.room).sort()).toEqual(['bathroom', 'kitchen'])
+    const face = FLOOR.width / 2 - WALL.thickness / 2
+    for (const a of tubes) {
+      expect(a.position[0] + a.size[2] / 2, a.room).toBeLessThanOrEqual(face)
+      expect(face - a.position[0], a.room).toBeLessThan(0.15)
+      expect(a.position[1], a.room).toBeGreaterThan(2)
+    }
+  })
+
   it('no two clickable anchors overlap in plan view', () => {
     const rect = (a: (typeof ALL_ANCHORS)[number]) => {
       const turned = Math.abs(Math.sin(a.rotationY ?? 0)) > 0.5
