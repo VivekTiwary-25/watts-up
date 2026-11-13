@@ -18,6 +18,9 @@ Running: T20 scene polish (Vachana sonnet: fan/light overlap, red flash on block
 ## Update 18:40
 Merged T20 (fan/light separated, red flash blocked pick, green halo), T21 (overlay message 3.5s, progress, highlights), T22 (README features/architecture/verification). Prettier now endOfLine auto. 88 tests, 185 commits. Running: R03 scene review (Vachana opus). Sol + Luna idle, waiting for models.
 
+## Update 19:10
+Merged R03 scene review (104 tests, 198 commits). Codex (Sol+Luna) 5h limit 100% until ~21:15 (3 saved resets exist on that account; only the user may use them). Running: T23 follow-ups (Vachana sonnet: pickError.id + mobile overview), T24 lint (Grok). Models still not delivered.
+
 ## Next
 1. Merge T20/T21/T22 (re-test power cut message on live site after).
 2. Models: public/models still empty - ask user/team for status. When they land in public/models/raw: run optimizer (worker task), verify size < 15 MB, browser check, fill README credits from team's sheet.
