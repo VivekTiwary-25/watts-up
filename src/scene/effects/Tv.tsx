@@ -10,18 +10,15 @@ const tv = anchorOf('tv')
 const T = VISUALS.tv
 
 /**
- * Native bounding box of public/models/tv.glb (x, y, z in the file's own units). ApplianceModel
- * fits the GLB uniformly (min scale) into the anchor box, so the same maths sizes the screen here.
+ * The anchor box is the fitted tv.glb (1.20 x 0.716 x 0.199 m). The screen covers most of the
+ * panel; the stand takes the bottom ~8%, so the screen is centred in the part above it.
  */
-const TV_GLB_DIMS = [13, 7.755, 2.152] as const
-const FIT = Math.min(
-  tv.size[0] / TV_GLB_DIMS[0],
-  tv.size[1] / TV_GLB_DIMS[1],
-  tv.size[2] / TV_GLB_DIMS[2],
-)
-const SCREEN_W = TV_GLB_DIMS[0] * FIT * 0.92
-const SCREEN_H = TV_GLB_DIMS[1] * FIT * 0.85
-const SCREEN_Z = (TV_GLB_DIMS[2] * FIT) / 2 + 0.004
+const [TV_W, TV_H, TV_D] = tv.size
+const STAND = 0.08
+const SCREEN_W = TV_W * 0.94
+const SCREEN_H = TV_H * 0.86
+const SCREEN_Y = (TV_H * STAND) / 2
+const SCREEN_Z = TV_D / 2 + 0.004
 
 // soft blue-white the screen drifts between while on
 const COLOR_A = new THREE.Color('#cfe4ff')
@@ -62,10 +59,10 @@ export function Tv() {
 
   return (
     <group position={tv.position} rotation-y={tv.rotationY ?? 0}>
-      <mesh geometry={geo} material={mat} position={[0, 0, SCREEN_Z]} />
+      <mesh geometry={geo} material={mat} position={[0, SCREEN_Y, SCREEN_Z]} />
       <pointLight
         ref={light}
-        position={[0, 0, SCREEN_Z + 0.6]}
+        position={[0, SCREEN_Y, SCREEN_Z + 0.6]}
         color="#bcdcff"
         intensity={0}
         distance={3}
