@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { Select } from '@react-three/postprocessing'
 import { ApplianceBox } from './ApplianceBox'
+import { MAINS } from './effects/mains'
 import { useLevel } from './effects/useLevel'
 import { glbExists, modelUrl } from './glb'
 import type { Anchor, Vec3 } from './layout'
@@ -118,7 +119,26 @@ function cloneMaterials(
   return [...clones.values()]
 }
 
+/** geyser.glb indicator lamps (GLTFLoader turns spaces into '_' and drops '.'). */
+const GEYSER = {
+  red: { name: /RED[\s_]*LIGHT[\s_]*G(EY|YE)SER/i, color: '#ff3020', max: 3 },
+  blue: { name: /BLUE[\s_]*LIGHT[\s_]*G(EY|YE)SER/i, color: '#3a7bff', standby: 0.4 },
+}
+
+const meshName = (mesh: THREE.Mesh) => `${mesh.name} ${mesh.parent?.name ?? ''}`
+
+function geyserGlows(root: THREE.Object3D): Glow[] {
+  const { red, blue } = GEYSER
+  const reds = cloneMaterials(root, (mesh) => red.name.test(meshName(mesh)), red.color)
+  const blues = cloneMaterials(root, (mesh) => blue.name.test(meshName(mesh)), blue.color)
+  return [
+    { mats: reds, intensity: (k) => red.max * k }, // heating
+    { mats: blues, intensity: () => blue.standby * (1 - MAINS.blackout) }, // mains present
+  ]
+}
+
 function glowsFor(anchor: Anchor, file: string, root: THREE.Object3D): Glow[] {
+  if (anchor.id === 'geyser') return geyserGlows(root)
   if (anchor.id !== 'light') return []
   const cfg = FIXTURE_GLOW[file]
   const color = cfg?.color ?? FIXTURE_FALLBACK
