@@ -1,22 +1,9 @@
 import { EffectComposer, Outline, Selection } from '@react-three/postprocessing'
-import { isPowered, useHouse } from '@/store/useHouse'
 import { ApplianceModel } from './ApplianceModel'
 import { CameraRig } from './CameraRig'
 import { House } from './House'
-import { ALL_ANCHORS, LIGHT_ANCHORS, METER } from './layout'
-
-/** Warm point light in every room while `light` is powered. */
-function RoomLights() {
-  const lit = useHouse((s) => isPowered(s, 'light'))
-  if (!lit) return null
-  return (
-    <>
-      {LIGHT_ANCHORS.map((a) => (
-        <pointLight key={a.room} position={[a.position[0], a.position[1] - 0.25, a.position[2]]} color="#ffc98a" intensity={6} distance={6} decay={2} />
-      ))}
-    </>
-  )
-}
+import { Effects } from './effects/Effects'
+import { ALL_ANCHORS, METER } from './layout'
 
 function Meter() {
   return (
@@ -33,20 +20,8 @@ export function Scene() {
     <>
       <color attach="background" args={['#0d1117']} />
       <fog attach="fog" args={['#0d1117', 22, 45]} />
-      <hemisphereLight args={['#b8c4d8', '#1a1d24', 0.55]} />
-      <ambientLight intensity={0.25} />
-      <directionalLight
-        position={[6, 12, 7]}
-        intensity={1.6}
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-9}
-        shadow-camera-right={9}
-        shadow-camera-top={9}
-        shadow-camera-bottom={-9}
-        shadow-bias={-0.0005}
-      />
-      <RoomLights />
+      {/* lights, appliance motion, energy wires, power-cut flicker */}
+      <Effects />
 
       <Selection>
         <House />
