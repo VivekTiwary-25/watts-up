@@ -1,12 +1,35 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { CameraControls } from '@react-three/drei'
+import { CameraControls, CameraControlsImpl } from '@react-three/drei'
 import { useHouse } from '@/store/useHouse'
 import { MOTION } from './effects/mains'
 import { VILLA_CUT_SHOT, VILLA_SHOT, villaOrbit } from './IntroVilla'
-import { ROOMS, fitShot, overviewShot } from './layout'
+import { ROOMS } from './layout'
+import {
+  OVERHEAD_LIMITS,
+  RESET_VIEW_EVENT,
+  ROOM_LIMITS,
+  overheadShot,
+  roomEyeShot,
+} from './cameraShots'
 
-/** Owns the camera. Flies to the overview or the focused room whenever `view`/`focusRoom` change. */
+const { ACTION } = CameraControlsImpl
+
+/** Mouse/touch mapping per view. No truck (pan) anywhere, so the house can't leave the screen. */
+function applyInput(c: CameraControls, firstPerson: boolean) {
+  c.mouseButtons.left = ACTION.ROTATE
+  c.mouseButtons.right = ACTION.ROTATE
+  c.mouseButtons.middle = firstPerson ? ACTION.NONE : ACTION.DOLLY
+  c.mouseButtons.wheel = firstPerson ? ACTION.NONE : ACTION.DOLLY
+  c.touches.one = ACTION.TOUCH_ROTATE
+  c.touches.two = firstPerson ? ACTION.NONE : ACTION.TOUCH_DOLLY
+  c.touches.three = ACTION.NONE
+  // first person: dragging turns the head (camera-controls' first-person recipe)
+  c.azimuthRotateSpeed = firstPerson ? -0.35 : 1
+  c.polarRotateSpeed = firstPerson ? -0.35 : 1
+}
+
+/** Owns the camera. Flies to the overview or into the focused room whenever `view`/`focusRoom` change. */
 export function CameraRig() {
   const ref = useRef<CameraControls>(null)
   const view = useHouse((s) => s.view)
@@ -14,35 +37,67 @@ export function CameraRig() {
   const villa = useHouse((s) => s.villa)
   // "Villa" view: orbitable look into the cut-open villa (the intro has its own orbit)
   const villaView = villa && view !== 'intro'
-  // rounded so small resizes don't re-fly the camera
-  const aspect = useThree((s) => Math.round((s.size.width / (s.size.height || 1)) * 10) / 10)
+  const roomView = view === 'room' && focusRoom !== null && !villaView
+  // bucketed so small resizes don't re-fly the camera
+  const width = useThree((s) => Math.round(s.size.width / 40) * 40)
+  const height = useThree((s) => Math.round(s.size.height / 40) * 40)
   const first = useRef(true)
   const introTime = useRef(0)
+
+  /** Fly to the shot for the current view. */
+  const applyShot = useCallback(
+    (animate: boolean) => {
+      const c = ref.current
+      if (!c) return
+      if (view === 'intro') {
+        introTime.current = 0
+        void c.setFocalOffset(0, 0, 0, false)
+        void c.setLookAt(...villaOrbit(0, MOTION.reduce), ...VILLA_SHOT.target, false)
+        return
+      }
+      if (villaView) {
+        c.smoothTime = 1.2
+        void c.setFocalOffset(0, 0, 0, animate)
+        void c.setLookAt(...VILLA_CUT_SHOT.cameraPos, ...VILLA_CUT_SHOT.cameraTarget, animate)
+        return
+      }
+      if (roomView && focusRoom) {
+        const shot = roomEyeShot(ROOMS[focusRoom])
+        c.smoothTime = 0.8
+        void c.setFocalOffset(0, 0, 0, animate)
+        void c.setLookAt(...shot.eye, ...shot.cameraTarget, animate)
+        return
+      }
+      const shot = overheadShot({ width, height })
+      c.smoothTime = 1.2
+      void c.setFocalOffset(...shot.focalOffset, animate)
+      void c.setLookAt(...shot.cameraPos, ...shot.cameraTarget, animate)
+    },
+    [view, villaView, roomView, focusRoom, width, height],
+  )
+
+  // overview re-fits on resize; the room view keeps where the player turned their head
+  const fitKey = view === 'overview' && !villaView ? `${width}x${height}` : ''
+  const applyRef = useRef(applyShot)
+  useEffect(() => {
+    applyRef.current = applyShot
+  }, [applyShot])
 
   useEffect(() => {
     const c = ref.current
     if (!c) return
-    if (view === 'intro') {
-      introTime.current = 0
-      void c.setLookAt(...villaOrbit(0, MOTION.reduce), ...VILLA_SHOT.target, false)
-      first.current = false
-      return
-    }
-    if (villaView) {
-      const animate = !first.current && !MOTION.reduce
-      first.current = false
-      c.smoothTime = 1.2
-      void c.setLookAt(...VILLA_CUT_SHOT.cameraPos, ...VILLA_CUT_SHOT.cameraTarget, animate)
-      return
-    }
-    // room shots pull back on portrait screens so the whole room stays in frame
-    const shot =
-      view === 'room' && focusRoom ? fitShot(ROOMS[focusRoom], aspect) : overviewShot(aspect)
-    const animate = !first.current && !MOTION.reduce
+    applyInput(c, roomView)
+    const animate = !first.current && !MOTION.reduce && view !== 'intro'
     first.current = false
-    c.smoothTime = view === 'overview' ? 1.2 : 0.6
-    void c.setLookAt(...shot.cameraPos, ...shot.cameraTarget, animate)
-  }, [view, focusRoom, aspect, villaView])
+    applyRef.current(animate)
+  }, [view, focusRoom, villaView, roomView, fitKey])
+
+  // "Reset view" button in the HUD
+  useEffect(() => {
+    const onReset = () => applyRef.current(!MOTION.reduce)
+    window.addEventListener(RESET_VIEW_EVENT, onReset)
+    return () => window.removeEventListener(RESET_VIEW_EVENT, onReset)
+  }, [])
 
   useFrame((_, delta) => {
     const c = ref.current
@@ -53,7 +108,7 @@ export function CameraRig() {
     void c.setLookAt(...villaOrbit(introTime.current), ...VILLA_SHOT.target, false)
   })
 
-  // Esc → back to overview (UI back button lives in T04).
+  // Esc → back to overview
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && useHouse.getState().view === 'room')
@@ -63,16 +118,22 @@ export function CameraRig() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const wide = view === 'intro' || villaView
   return (
     <CameraControls
       ref={ref}
       makeDefault
       enabled={view !== 'intro'}
-      smoothTime={view === 'overview' || villaView ? 1.2 : 0.6}
-      minPolarAngle={0.15}
-      maxPolarAngle={Math.PI / 2 - 0.08}
-      minDistance={3}
-      maxDistance={view === 'intro' || villaView ? 90 : 28}
+      truckSpeed={0}
+      smoothTime={roomView ? 0.8 : 1.2}
+      minPolarAngle={roomView ? ROOM_LIMITS.minPolar : wide ? 0.15 : OVERHEAD_LIMITS.minPolar}
+      maxPolarAngle={
+        roomView ? ROOM_LIMITS.maxPolar : wide ? Math.PI / 2 - 0.08 : OVERHEAD_LIMITS.maxPolar
+      }
+      minDistance={roomView ? ROOM_LIMITS.lookDistance / 2 : wide ? 3 : OVERHEAD_LIMITS.minDistance}
+      maxDistance={
+        roomView ? ROOM_LIMITS.lookDistance * 2 : wide ? 90 : OVERHEAD_LIMITS.maxDistance
+      }
     />
   )
 }
