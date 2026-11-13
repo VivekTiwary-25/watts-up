@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { motion, useAnimationControls } from 'motion/react'
+import { AnimatePresence, motion, useAnimationControls, useIsPresent } from 'motion/react'
 import { X } from 'lucide-react'
 import { APPLIANCE_BY_ID, type ApplianceId } from '@/data/appliances'
 import { POWER_CUT, TARIFF } from '@/data/config'
@@ -24,6 +24,21 @@ const vignetteStyle = {
     'radial-gradient(ellipse at 50% 38%, rgba(7,11,22,0.42) 0%, rgba(7,11,22,0.78) 58%, rgba(7,11,22,0.94) 100%)',
 }
 
+// Spring-free ease-out (quint-like) shared by the card transitions.
+const CARD_EASE = [0.22, 1, 0.36, 1] as const
+
+const cardMotion = {
+  initial: { opacity: 0, y: 14, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.32, ease: CARD_EASE } },
+  exit: { opacity: 0, y: 8, scale: 0.985, transition: { duration: 0.24, ease: CARD_EASE } },
+}
+
+const reducedCardMotion = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.15, ease: 'linear' as const } },
+  exit: { opacity: 0, transition: { duration: 0.12, ease: 'linear' as const } },
+}
+
 const enterChild = {
   hidden: { opacity: 0, y: 8, filter: 'blur(4px)' },
   show: {
@@ -32,6 +47,16 @@ const enterChild = {
     filter: 'blur(0px)',
     transition: { duration: 0.32, ease: 'easeOut' as const },
   },
+}
+
+const statRow = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
+}
+
+const statItem = {
+  hidden: { opacity: 0, y: 6 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.26, ease: CARD_EASE } },
 }
 
 export function PowerCutOverlay() {
@@ -69,9 +94,11 @@ export function PowerCutOverlay() {
           {!reduced && <Lightning />}
         </>
       )}
-      <div className="absolute inset-x-0 bottom-0 flex justify-center px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        {phase === 'choosing' && <ChoosingCard reduced={reduced} />}
-        {phase === 'result' && <ResultCard reduced={reduced} />}
+      <div className="absolute inset-x-0 bottom-0 grid justify-items-center px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] *:col-start-1 *:row-start-1 *:self-end">
+        <AnimatePresence initial={!reduced}>
+          {phase === 'choosing' && <ChoosingCard key="choosing" reduced={reduced} />}
+          {phase === 'result' && <ResultCard key="result" reduced={reduced} />}
+        </AnimatePresence>
       </div>
     </div>
   )
@@ -104,9 +131,11 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
   const watts = loadWatts(picks)
   const open = Math.max(0, POWER_CUT.picks - picks.length)
   const slots = Array.from({ length: POWER_CUT.picks }, (_, index) => picks[index] ?? null)
+  // Slots already filled when the card opens should not pulse; only new picks do.
+  const [initialPicks] = useState(() => new Set(picks))
 
   return (
-    <CardShell reduced={reduced} shakeAt={pickError?.at} label="Inverter backup">
+    <CardShell reduced={reduced} label="Inverter backup">
       <Enter reduced={reduced}>
         <h2 className="text-balance px-2 pt-2 text-lg font-semibold tracking-tight">
           Inverter backup: choose 3 to keep running.
@@ -117,41 +146,50 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
             : `Select ${open === 1 ? '1 more' : `${open} more`} in the house.`}
         </p>
       </Enter>
-      {shown && (
-        <p
-          className="mt-3 rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-center text-sm font-medium text-amber-100"
-          role="alert"
-        >
-          {shown}
-        </p>
-      )}
       <Enter reduced={reduced}>
-        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label="Backup slots">
-          {slots.map((id, index) => (
-            <li key={id ?? `empty-${index}`}>
-              {id ? (
-                <button
-                  type="button"
-                  onClick={() => pick(id)}
-                  title={APPLIANCE_BY_ID[id].name}
-                  aria-label={`Remove ${APPLIANCE_BY_ID[id].name} from backup`}
-                  className="flex min-h-11 w-full items-center gap-2 rounded-xl bg-white/5 pr-2.5 pl-3 text-left text-sm transition-[background-color] duration-150 ease-out hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-                >
-                  <span className="truncate">{APPLIANCE_BY_ID[id].name}</span>
-                  <X
-                    className="ml-auto size-3.5 shrink-0 opacity-70"
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
-                </button>
-              ) : (
-                <div className="flex min-h-11 items-center rounded-xl border border-dashed border-white/15 px-3 text-sm text-muted-foreground">
-                  Empty
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+        <Shake reduced={reduced} at={pickError?.at}>
+          {shown && (
+            <motion.p
+              className="mt-3 rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-center text-sm font-medium text-amber-100"
+              role="alert"
+              initial={reduced ? false : { opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: CARD_EASE }}
+            >
+              {shown}
+            </motion.p>
+          )}
+          <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label="Backup slots">
+            {slots.map((id, index) => (
+              <li key={id ?? `empty-${index}`}>
+                {id ? (
+                  <motion.button
+                    type="button"
+                    onClick={() => pick(id)}
+                    title={APPLIANCE_BY_ID[id].name}
+                    aria-label={`Remove ${APPLIANCE_BY_ID[id].name} from backup`}
+                    className="relative flex min-h-11 w-full items-center gap-2 rounded-xl bg-white/5 pr-2.5 pl-3 text-left text-sm transition-[background-color] duration-150 ease-out hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                    initial={reduced || initialPicks.has(id) ? false : { scale: 0.97 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.22, ease: CARD_EASE }}
+                  >
+                    {!initialPicks.has(id) && <SlotPulse />}
+                    <span className="relative truncate">{APPLIANCE_BY_ID[id].name}</span>
+                    <X
+                      className="relative ml-auto size-3.5 shrink-0 opacity-70"
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
+                  </motion.button>
+                ) : (
+                  <div className="flex min-h-11 items-center rounded-xl border border-dashed border-white/15 px-3 text-sm text-muted-foreground">
+                    Empty
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Shake>
       </Enter>
       <Enter reduced={reduced}>
         <div className="mt-3 flex items-center justify-between gap-3 px-2">
@@ -214,6 +252,7 @@ function ResultCard({ reduced }: { reduced: boolean }) {
           <BatteryGauge hours={hours} />
         </div>
         <StatRow
+          reduced={reduced}
           comfort={`${comfort.score}/${comfort.max}`}
           backup={Number.isFinite(hours) ? formatDuration(hours) : '—'}
           cost={`${formatRupees(cost)}/h`}
@@ -250,15 +289,18 @@ function ResultCard({ reduced }: { reduced: boolean }) {
         </p>
       </Enter>
       <Enter reduced={reduced}>
-        <div className="mt-4 border-t border-white/10 px-2 pt-4">
-          <h3 className="text-balance text-base font-semibold">Best possible combo</h3>
-          <p className="mt-1 text-pretty text-sm">{joinNames(best.picks)}</p>
+        <div className="mt-4 rounded-2xl bg-teal-300/[0.05] pt-3 pb-3 shadow-[inset_0_0_0_1px_rgba(153,246,228,0.14),0_0_24px_rgba(94,234,212,0.06)]">
+          <div className="px-2">
+            <h3 className="text-balance text-base font-semibold">Best possible combo</h3>
+            <p className="mt-1 text-pretty text-sm text-teal-50">{joinNames(best.picks)}</p>
+          </div>
+          <StatRow
+            reduced={reduced}
+            comfort={`${bestComfort.score}/${bestComfort.max}`}
+            backup={formatDuration(best.batteryHours)}
+            cost={`${formatRupees(best.costPerHour)}/h`}
+          />
         </div>
-        <StatRow
-          comfort={`${bestComfort.score}/${bestComfort.max}`}
-          backup={formatDuration(best.batteryHours)}
-          cost={`${formatRupees(best.costPerHour)}/h`}
-        />
         <p className="mt-3 px-2 text-pretty text-sm">{comparison}</p>
         <p className="mt-1 px-2 text-pretty text-sm text-muted-foreground">
           Checked all {comboCount} combinations.
@@ -288,31 +330,27 @@ function ResultCard({ reduced }: { reduced: boolean }) {
 
 function CardShell({
   reduced,
-  shakeAt,
   label,
   children,
 }: {
   reduced: boolean
-  shakeAt?: number
   label: string
   children: ReactNode
 }) {
-  const controls = useAnimationControls()
-
-  useEffect(() => {
-    if (reduced || shakeAt == null) return
-    void controls.start({
-      x: [0, -10, 10, -8, 8, -4, 4, 0],
-      transition: { duration: 0.45, ease: 'easeInOut' },
-    })
-  }, [shakeAt, reduced, controls])
+  const isPresent = useIsPresent()
+  const card = reduced ? reducedCardMotion : cardMotion
 
   return (
     <motion.section
       role="region"
       aria-label={label}
-      className="glass pointer-events-auto max-h-[min(36rem,calc(100svh-2rem))] w-full max-w-md overflow-y-auto rounded-3xl p-3"
-      animate={controls}
+      aria-hidden={isPresent ? undefined : true}
+      inert={!isPresent}
+      className="glass pointer-events-auto max-h-[min(36rem,calc(100svh-2rem))] w-full max-w-md origin-bottom overflow-y-auto rounded-3xl p-3 data-[leaving=true]:pointer-events-none"
+      data-leaving={isPresent ? undefined : true}
+      initial={card.initial}
+      animate={card.animate}
+      exit={card.exit}
     >
       <motion.div
         initial={reduced ? false : 'hidden'}
@@ -327,26 +365,67 @@ function CardShell({
   )
 }
 
+/** Brief 2-3 px shake when a 4th pick is blocked. Skipped under reduced motion. */
+function Shake({ reduced, at, children }: { reduced: boolean; at?: number; children: ReactNode }) {
+  const controls = useAnimationControls()
+
+  useEffect(() => {
+    if (reduced || at == null) return
+    void controls.start({
+      x: [0, -3, 3, -2, 2, 0],
+      transition: { duration: 0.25, ease: 'easeInOut' },
+    })
+  }, [at, reduced, controls])
+
+  return <motion.div animate={controls}>{children}</motion.div>
+}
+
+/** One-shot green-cyan glow when a slot fills. Opacity only, so it is motion-safe. */
+function SlotPulse() {
+  return (
+    <motion.span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 rounded-xl bg-teal-300/10 shadow-[inset_0_0_0_1px_rgba(94,234,212,0.5),0_0_16px_rgba(94,234,212,0.22)]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0] }}
+      transition={{ duration: 0.7, times: [0, 0.25, 1], ease: 'easeOut' }}
+    />
+  )
+}
+
 function Enter({ reduced, children }: { reduced: boolean; children: ReactNode }) {
   return <motion.div variants={reduced ? undefined : enterChild}>{children}</motion.div>
 }
 
-function StatRow({ comfort, backup, cost }: { comfort: string; backup: string; cost: string }) {
+function StatRow({
+  reduced,
+  comfort,
+  backup,
+  cost,
+}: {
+  reduced: boolean
+  comfort: string
+  backup: string
+  cost: string
+}) {
   return (
-    <div className="mt-3 grid grid-cols-3 gap-2 px-2">
-      <Stat label="Comfort" value={comfort} />
-      <Stat label="Backup" value={backup} />
-      <Stat label="Cost" value={cost} />
-    </div>
+    <motion.div
+      className="mt-3 grid grid-cols-3 gap-2 px-2"
+      variants={reduced ? undefined : statRow}
+    >
+      <Stat reduced={reduced} label="Comfort" value={comfort} />
+      <Stat reduced={reduced} label="Backup" value={backup} />
+      <Stat reduced={reduced} label="Cost" value={cost} />
+    </motion.div>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ reduced, label, value }: { reduced: boolean; label: string; value: string }) {
   return (
-    <div className="min-w-0">
+    <motion.div className="min-w-0" variants={reduced ? undefined : statItem}>
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="tabular-nums text-lg font-semibold tracking-tight">{value}</p>
-    </div>
+    </motion.div>
   )
 }
 
