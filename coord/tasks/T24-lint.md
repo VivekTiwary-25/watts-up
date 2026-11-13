@@ -1,4 +1,4 @@
-# T24 - Lint clean-up (worker: Codex Luna) - branch `t24-lint`
+# T24 - Lint clean-up (worker: Grok; Codex hit its 5h limit) - branch `t24-lint`
 
 `npm run lint` (oxlint) reports old warnings (`react(immutability)`, `set-state-in-effect`, fast-refresh export in button.tsx). Fix the ones in `src/ui/**` (including src/ui/powercut) and `src/components/ui/button.tsx` without changing behaviour (e.g. derive state instead of setState in effects, move `buttonVariants` export to its own file `src/components/ui/button-variants.ts`).
 
