@@ -1,0 +1,8 @@
+feat(data): define appliance catalog and shared types | src/data/appliances.ts
+feat(config): centralize tariff inverter and room defaults | src/data/config.ts
+feat(format): format rupees with Indian digit grouping | src/lib/format.ts
+feat(bill): calculate slab bills and actionable savings tips | src/lib/bill.ts src/lib/bill.test.ts
+feat(powercut): implement inverter selection and best combination | src/lib/powercut.ts src/lib/powercut.test.ts
+feat(store): add house state and power-cut lifecycle | src/store/useHouse.ts
+test(store): verify controls restoration and bill memoization | src/store/useHouse.test.ts
+docs(core): record implementation and verification results | coord/results/T02-core-logic.md coord/results/T02-core-logic.commits

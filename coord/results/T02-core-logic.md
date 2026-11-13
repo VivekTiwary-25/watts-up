@@ -1,0 +1,12 @@
+# T02 core logic complete
+- Implemented the exact shared appliance types/catalog and configurable tariff, inverter, rooms and defaults.
+- Added Indian rupee formatting, slab billing, proportional item costs and recomputed savings tips.
+- Added immutable power-cut picks, selection validation, load/runtime/comfort/cost calculations and all 56 combinations.
+- Best selection is fridge + fan + light: comfort 10/12, 1440/265 hours of backup.
+- Added the Zustand house store, saved-switch restoration, scene power selector and memoized bill hook.
+- Store input setters clamp finite hours to 0–24 and targets to the configured range; repeated cuts preserve the original snapshot.
+- Files: src/data/{appliances,config}.ts; src/lib/{format,bill,powercut}.ts and bill/powercut tests; src/store/useHouse.ts and its tests.
+- Verification: npm test passed all 27 tests across 4 files; npm run build and npm run lint passed.
+- Existing warnings remain: large production bundle and Fast Refresh export in src/components/ui/button.tsx; both outside task scope.
+- Eight ordered commit entries are in coord/results/T02-core-logic.commits; no git commit, push or merge performed.
+- Open issues: no core-logic blockers; UI/3D integration and browser visuals were outside this task.
