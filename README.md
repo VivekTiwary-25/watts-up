@@ -7,7 +7,7 @@ People cannot see which appliances drive their electricity bill, or how to cope 
 - The monthly bill updates live as you toggle appliances or change their daily hours.
 - A target bill with a progress ring shows how far under or over target you are.
 - The Power Cut twist: pick exactly 3 appliances for the inverter and get a result card with the best possible combination.
-- A sunset intro around a 3-level Bali hillside villa, then a 3D dollhouse with real, clickable appliance models; a Villa / Rooms toggle shows the villa sliced open at the ground floor (section cut).
+- A sunset intro around a 3-level Bali hillside villa, then a furnished 3D dollhouse with real, clickable appliance models: click a room to step inside at eye height and look around (Previous / Next / Overview). A Villa / Rooms toggle shows the villa sliced open at the ground floor (section cut).
 - Accessibility: `prefers-reduced-motion` is respected and the controls work from the keyboard.
 
 ## Run it
