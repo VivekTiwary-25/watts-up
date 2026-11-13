@@ -60,28 +60,32 @@ export function LoadingScreen() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-[#0b1020] text-slate-100 tabular-nums"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,#141b2d_0%,#0b1020_70%)] p-6 text-slate-100 tabular-nums"
           role="status"
-          aria-label="Loading your home"
+          aria-label="Loading the villa"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: reducedMotion ? 0 : 0.3 }}
+          transition={{ duration: reducedMotion ? 0 : 0.4 }}
         >
-          <h1 className="text-3xl font-semibold tracking-tight">Watt's Up?</h1>
-          <div
-            className="h-1 w-64 max-w-[80vw] overflow-hidden rounded-full bg-slate-700"
-            role="progressbar"
-            aria-label="Home assets"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={percent}
-          >
+          <div className="glass flex w-full max-w-xs flex-col items-center gap-5 rounded-3xl px-8 py-7">
+            <h1 className="text-2xl font-semibold tracking-tight">Watt's Up?</h1>
             <div
-              className="h-full rounded-full bg-cyan-200 shadow-[0_0_10px_#a5f3fc]"
-              style={{ width: `${percent}%` }}
-            />
+              className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800"
+              role="progressbar"
+              aria-label="Villa assets"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={percent}
+            >
+              <div
+                className="h-full rounded-full bg-cyan-200 shadow-[0_0_10px_#a5f3fc80] motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-out"
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            <p className="text-sm text-slate-300">
+              Loading the villa… <span className="text-slate-100">{percent}%</span>
+            </p>
           </div>
-          <p className="text-sm text-slate-300">Loading your home… {percent}%</p>
         </motion.div>
       )}
     </AnimatePresence>
