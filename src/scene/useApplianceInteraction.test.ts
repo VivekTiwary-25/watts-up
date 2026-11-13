@@ -2,12 +2,10 @@ import { cleanup, renderHook } from '@testing-library/react'
 import type { ThreeEvent } from '@react-three/fiber'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { useHouse } from '@/store/useHouse'
-import { lastScenePick, useApplianceInteraction } from './useApplianceInteraction'
+import { useApplianceInteraction } from './useApplianceInteraction'
 
 beforeEach(() => {
   useHouse.setState(useHouse.getInitialState(), true)
-  lastScenePick.id = null
-  lastScenePick.at = 0
 })
 afterEach(cleanup)
 
@@ -74,6 +72,5 @@ describe('useApplianceInteraction', () => {
     const { result } = renderHook(() => useApplianceInteraction('fridge'))
     tap(result.current, 'mouse')
     expect(useHouse.getState().picks).toEqual(['fridge'])
-    expect(lastScenePick.id).toBe('fridge')
   })
 })

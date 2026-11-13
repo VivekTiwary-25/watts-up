@@ -2,12 +2,6 @@ import { useMemo, useRef } from 'react'
 import type { ThreeEvent } from '@react-three/fiber'
 import { useHouse, type ApplianceId } from '@/store/useHouse'
 
-/**
- * Last power-cut pick made by clicking in 3D. The store's pickError has no appliance id, so
- * PickFeedback uses this to flash the right appliance (and nothing for picks made in the UI).
- */
-export const lastScenePick: { id: ApplianceId | null; at: number } = { id: null, at: 0 }
-
 /** True while this appliance is hovered or selected (drives the outline). */
 export function useHighlighted(id: ApplianceId) {
   return useHouse((s) => s.hovered === id || s.selected === id)
@@ -21,8 +15,6 @@ export function useApplianceInteraction(id: ApplianceId) {
     const activate = () => {
       const s = useHouse.getState()
       if (s.powerCut !== 'off') {
-        lastScenePick.id = id
-        lastScenePick.at = performance.now()
         s.pick(id)
       } else {
         s.toggle(id)
