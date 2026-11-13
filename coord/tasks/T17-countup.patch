@@ -1,0 +1,71 @@
+﻿diff --git a/src/test/setup.ts b/src/test/setup.ts
+index cba9c66..0c25d1f 100644
+--- a/src/test/setup.ts
++++ b/src/test/setup.ts
+@@ -1,3 +1,8 @@
++import { MotionGlobalConfig } from 'motion/react'
++
++// Tests check final values, not tweens.
++MotionGlobalConfig.skipAnimations = true
++
+ class TestResizeObserver implements ResizeObserver {
+   observe() {}
+   unobserve() {}
+@@ -5,3 +10,18 @@ class TestResizeObserver implements ResizeObserver {
+ }
+ 
+ globalThis.ResizeObserver = TestResizeObserver
++
++// jsdom has no matchMedia. Report prefers-reduced-motion so animated values settle instantly in tests.
++if (!window.matchMedia) {
++  window.matchMedia = (query: string) =>
++    ({
++      matches: query.includes('prefers-reduced-motion: reduce'),
++      media: query,
++      onchange: null,
++      addListener: () => {},
++      removeListener: () => {},
++      addEventListener: () => {},
++      removeEventListener: () => {},
++      dispatchEvent: () => false,
++    }) as MediaQueryList
++}
+diff --git a/src/ui/AnimatedNumber.tsx b/src/ui/AnimatedNumber.tsx
+index 2d902e8..bd688df 100644
+--- a/src/ui/AnimatedNumber.tsx
++++ b/src/ui/AnimatedNumber.tsx
+@@ -1,8 +1,33 @@
++import { useEffect, useRef, useState } from 'react'
++import { animate, useReducedMotion } from 'motion/react'
+ import { formatINR } from '@/lib/format'
+ 
+ const number = new Intl.NumberFormat('en-IN', {
+   maximumFractionDigits: 1,
+ })
++
++/** Counts smoothly from the previous value to the new one; jumps instantly with reduced motion. */
+ export function AnimatedNumber({ value, currency = true }: { value: number; currency?: boolean }) {
+-  return <span className="tabular-nums">{currency ? formatINR(value) : number.format(value)}</span>
++  const reduced = useReducedMotion()
++  const [shown, setShown] = useState(value)
++  const from = useRef(value)
++
++  useEffect(() => {
++    if (reduced) {
++      from.current = value
++      setShown(value)
++      return
++    }
++    const controls = animate(from.current, value, {
++      duration: 0.6,
++      ease: [0.22, 1, 0.36, 1],
++      onUpdate: (v) => {
++        from.current = v
++        setShown(v)
++      },
++    })
++    return () => controls.stop()
++  }, [value, reduced])
++
++  return <span className="tabular-nums">{currency ? formatINR(shown) : number.format(shown)}</span>
+ }
