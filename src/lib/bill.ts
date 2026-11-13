@@ -60,7 +60,9 @@ export function computeBill(
     .sort((a, b) => b.cost - a.cost)
   let tip = `Everything is off. Your bill is just the ${formatINR(tariff.fixedCharge)} fixed charge.`
   const top = items[0]
-  if (top) {
+  if (totalUnits === 0 && active.length > 0) {
+    tip = `Your appliances are on but set to 0 hours. Your bill is just the ${formatINR(tariff.fixedCharge)} fixed charge.`
+  } else if (top) {
     const appliance = active.find((item) => item.id === top.id)!
     const reducedUnits = monthlyUnits(
       appliance.watts,
