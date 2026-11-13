@@ -61,7 +61,7 @@ export const VISUALS = {
     sunIntensity: [0.75, 0.5, 0.08],
   },
   fan: { maxSpin: 14 },
-  tv: { screen: '#cceeff', intensity: 2.5, flicker: 0.12 },
+  tv: { screen: '#cceeff', intensity: 1.1, flicker: 0.12 },
   ac: { haze: '#99ccff', hazeOpacity: 0.14, light: '#8fc8ff', lightIntensity: 3 },
   geyser: { tint: '#ff8a4a', opacity: 0.45, scroll: 0.12 },
   led: { on: '#4dff9a', off: '#3a1d1d', glow: 2.5 },

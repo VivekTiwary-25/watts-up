@@ -74,13 +74,14 @@ function Hotspot({ id }: { id: Room }) {
           toneMapped={false}
         />
       </mesh>
-      <Html center position={[0, 0.35, 0]} style={{ pointerEvents: 'none' }} zIndexRange={[5, 0]}>
-        <span
-          className={`pointer-events-none rounded-full border border-white/15 bg-slate-950/70 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-slate-100 shadow-sm backdrop-blur-sm transition-colors select-none ${hovered ? 'border-sky-300/60 text-sky-100' : ''}`}
-        >
-          {roomName(id)}
-        </span>
-      </Html>
+      {/* the floating RoomLabels already name each room; this one only says "step in" on hover */}
+      {hovered && (
+        <Html center position={[0, 0.35, 0]} style={{ pointerEvents: 'none' }} zIndexRange={[5, 0]}>
+          <span className="pointer-events-none rounded-full border border-sky-300/60 bg-slate-950/70 px-2 py-0.5 text-[11px] font-medium whitespace-nowrap text-sky-100 shadow-sm backdrop-blur-sm select-none">
+            Step into the {roomName(id).toLowerCase()}
+          </span>
+        </Html>
+      )}
     </group>
   )
 }
