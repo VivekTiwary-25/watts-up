@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import * as THREE from 'three'
-import { ALL_ANCHORS, OVERVIEW, ROOMS, ROOM_IDS, WALLS, type Anchor, type Vec3 } from './layout'
+import {
+  ALL_ANCHORS,
+  OVERVIEW,
+  ROOMS,
+  ROOM_IDS,
+  WALLS,
+  fitShot,
+  type Anchor,
+  type Vec3,
+} from './layout'
 
 // Camera fov must match App.tsx <Canvas camera={{ fov }}>.
 const FOV = 45
@@ -32,8 +41,8 @@ function visibleFrom(cameraPos: Vec3, a: Anchor): boolean {
   })
 }
 
-function inFrustum(cameraPos: Vec3, target: Vec3, a: Anchor): boolean {
-  const cam = new THREE.PerspectiveCamera(FOV, ASPECT, 0.1, 100)
+function inFrustum(cameraPos: Vec3, target: Vec3, a: Anchor, aspect = ASPECT): boolean {
+  const cam = new THREE.PerspectiveCamera(FOV, aspect, 0.1, 100)
   cam.position.set(...cameraPos)
   cam.lookAt(...target)
   cam.updateMatrixWorld()
@@ -48,6 +57,24 @@ describe('camera framing', () => {
       expect(inFrustum(shot.cameraPos, shot.cameraTarget, a), `${a.id} in frame`).toBe(true)
       expect(visibleFrom(shot.cameraPos, a), `${a.id} not behind a wall`).toBe(true)
     }
+  })
+
+  it.each([
+    ['phone portrait', 9 / 19.5],
+    ['tablet portrait', 3 / 4],
+  ])('%s: fitted room shots keep every appliance in frame', (_, aspect) => {
+    for (const room of ROOM_IDS) {
+      const shot = fitShot(ROOMS[room], aspect)
+      for (const a of ALL_ANCHORS.filter((x) => x.room === room)) {
+        const label = `${room}/${a.id}`
+        expect(inFrustum(shot.cameraPos, shot.cameraTarget, a, aspect), label).toBe(true)
+        expect(visibleFrom(shot.cameraPos, a), label).toBe(true)
+      }
+    }
+  })
+
+  it('fitShot leaves landscape shots untouched', () => {
+    expect(fitShot(ROOMS.living, 16 / 9).cameraPos).toEqual(ROOMS.living.cameraPos)
   })
 
   it('overview sees every appliance', () => {

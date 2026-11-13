@@ -52,6 +52,26 @@ export const ROOMS: Record<Room, RoomLayout> = {
 export const ROOM_IDS = Object.keys(ROOMS) as Room[]
 
 export const OVERVIEW = { cameraPos: [0, 13, 12] as Vec3, cameraTarget: [0, 0, 0.3] as Vec3 }
+
+/** Shots are composed for landscape; narrower viewports pull the camera back along its view line. */
+export const SHOT_FIT = { refAspect: 1.5, maxPullBack: 2.6 } as const
+
+export interface Shot {
+  cameraPos: Vec3
+  cameraTarget: Vec3
+}
+
+/** Same shot, camera moved back so a narrow (portrait) viewport still shows the room's width. */
+export function fitShot(shot: Shot, aspect: number): Shot {
+  const k = Math.min(SHOT_FIT.maxPullBack, Math.max(1, SHOT_FIT.refAspect / (aspect || 1)))
+  const [px, py, pz] = shot.cameraPos
+  const [tx, ty, tz] = shot.cameraTarget
+  return {
+    cameraPos: [tx + (px - tx) * k, ty + (py - ty) * k, tz + (pz - tz) * k],
+    cameraTarget: shot.cameraTarget,
+  }
+}
+
 export const INTRO_CAMERA = {
   start: { cameraPos: [0, 1.7, 19] as Vec3, cameraTarget: [0, 1.2, 0] as Vec3 },
   end: { cameraPos: [1.2, 1.7, 19] as Vec3, cameraTarget: [0, 1.2, 0] as Vec3 },

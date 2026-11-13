@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
 import { useHouse } from '@/store/useHouse'
 import { MOTION } from './effects/mains'
-import { INTRO_CAMERA, OVERVIEW, ROOMS } from './layout'
+import { INTRO_CAMERA, OVERVIEW, ROOMS, fitShot } from './layout'
 
 const I = INTRO_CAMERA
 
@@ -12,6 +12,8 @@ export function CameraRig() {
   const ref = useRef<CameraControls>(null)
   const view = useHouse((s) => s.view)
   const focusRoom = useHouse((s) => s.focusRoom)
+  // rounded so small resizes don't re-fly the camera
+  const aspect = useThree((s) => Math.round((s.size.width / (s.size.height || 1)) * 10) / 10)
   const first = useRef(true)
   const introTime = useRef(0)
 
@@ -24,12 +26,13 @@ export function CameraRig() {
       first.current = false
       return
     }
-    const shot = view === 'room' && focusRoom ? ROOMS[focusRoom] : OVERVIEW
+    // room shots pull back on portrait screens so the whole room stays in frame
+    const shot = view === 'room' && focusRoom ? fitShot(ROOMS[focusRoom], aspect) : OVERVIEW
     const animate = !first.current && !MOTION.reduce
     first.current = false
     c.smoothTime = view === 'overview' ? 1.2 : 0.6
     void c.setLookAt(...shot.cameraPos, ...shot.cameraTarget, animate)
-  }, [view, focusRoom])
+  }, [view, focusRoom, aspect])
 
   useFrame((_, delta) => {
     const c = ref.current
