@@ -14,13 +14,150 @@ import {
 } from './layout'
 import { mergeBoxes } from './mergeBoxes'
 
-/** Warm, dark wood per room (bathroom: cool stone). Roughness varies a touch per room. */
-const FLOORS = {
-  living: { color: '#4a3324', roughness: 0.62 },
-  kitchen: { color: '#463428', roughness: 0.68 },
-  bedroom: { color: '#523827', roughness: 0.6 },
-  bathroom: { color: '#363c42', roughness: 0.5 },
+type FloorKind = 'wood' | 'tile' | 'carpet'
+
+interface FloorFinish {
+  kind: FloorKind
+  /** base and accent colours painted into the procedural texture */
+  base: string
+  accent: string
+  roughness: number
+  /** metres covered by one texture repeat */
+  tile: number
+}
+
+/** Warm wood living room, light tile kitchen + bathroom, soft carpet bedroom. */
+const FLOORS: Record<Room, FloorFinish> = {
+  living: { kind: 'wood', base: '#7a5639', accent: '#5e412b', roughness: 0.7, tile: 1.2 },
+  kitchen: { kind: 'tile', base: '#d3cdc2', accent: '#aaa398', roughness: 0.6, tile: 1.2 },
+  bedroom: { kind: 'carpet', base: '#6f6a7c', accent: '#7c778a', roughness: 0.98, tile: 1 },
+  bathroom: { kind: 'tile', base: '#c8cfd2', accent: '#9ea7ab', roughness: 0.55, tile: 0.8 },
+}
+
+const TEX_SIZE = 256
+
+/** Tiny deterministic PRNG so the procedural floors look the same every load. */
+function rng(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 16807) % 2147483647
+    return s / 2147483647
+  }
+}
+
+function paintWood(ctx: CanvasRenderingContext2D, f: FloorFinish) {
+  const rand = rng(7)
+  const planks = 6
+  const h = TEX_SIZE / planks
+  for (let i = 0; i < planks; i++) {
+    // each plank row gets a slight tone shift and one staggered end joint
+    ctx.fillStyle = f.base
+    ctx.fillRect(0, i * h, TEX_SIZE, h)
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.04 + rand() * 0.1})`
+    ctx.fillRect(0, i * h, TEX_SIZE, h)
+    ctx.fillStyle = f.accent
+    ctx.globalAlpha = 0.18
+    for (let g = 0; g < 4; g++) {
+      ctx.fillRect(0, i * h + rand() * h, TEX_SIZE, 1)
+    }
+    ctx.globalAlpha = 0.8
+    ctx.fillRect(0, i * h, TEX_SIZE, 1.5)
+    ctx.fillRect(Math.floor(rand() * TEX_SIZE), i * h, 1.5, h)
+    ctx.globalAlpha = 1
+  }
+}
+
+function paintTile(ctx: CanvasRenderingContext2D, f: FloorFinish) {
+  const rand = rng(11)
+  const n = 4
+  const s = TEX_SIZE / n
+  ctx.fillStyle = f.accent
+  ctx.fillRect(0, 0, TEX_SIZE, TEX_SIZE)
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      ctx.fillStyle = f.base
+      ctx.fillRect(x * s + 1.5, y * s + 1.5, s - 3, s - 3)
+      ctx.fillStyle = `rgba(255, 255, 255, ${rand() * 0.06})`
+      ctx.fillRect(x * s + 1.5, y * s + 1.5, s - 3, s - 3)
+    }
+  }
+}
+
+function paintCarpet(ctx: CanvasRenderingContext2D, f: FloorFinish) {
+  const rand = rng(23)
+  ctx.fillStyle = f.base
+  ctx.fillRect(0, 0, TEX_SIZE, TEX_SIZE)
+  ctx.fillStyle = f.accent
+  for (let i = 0; i < 2400; i++) {
+    ctx.globalAlpha = 0.25 + rand() * 0.35
+    ctx.fillRect(rand() * TEX_SIZE, rand() * TEX_SIZE, 1.5, 1.5)
+  }
+  ctx.globalAlpha = 1
+}
+
+const PAINTERS: Record<FloorKind, (ctx: CanvasRenderingContext2D, f: FloorFinish) => void> = {
+  wood: paintWood,
+  tile: paintTile,
+  carpet: paintCarpet,
+}
+
+/** Small repeating CanvasTexture for a room floor, or null where canvas 2D is unavailable (tests). */
+function floorTexture(id: Room): THREE.CanvasTexture | null {
+  if (typeof document === 'undefined') return null
+  const canvas = document.createElement('canvas')
+  canvas.width = TEX_SIZE
+  canvas.height = TEX_SIZE
+  let ctx: CanvasRenderingContext2D | null = null
+  try {
+    ctx = canvas.getContext('2d')
+  } catch {
+    ctx = null
+  }
+  if (!ctx) return null
+  const f = FLOORS[id]
+  PAINTERS[f.kind](ctx, f)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.wrapS = THREE.RepeatWrapping
+  tex.wrapT = THREE.RepeatWrapping
+  tex.anisotropy = 4
+  const [w, d] = ROOMS[id].size
+  tex.repeat.set(w / f.tile, d / f.tile)
+  return tex
+}
+
+/** One soft matte material per room floor, built once. */
+const FLOOR_MATERIALS = Object.fromEntries(
+  ROOM_IDS.map((id) => {
+    const f = FLOORS[id]
+    const map = floorTexture(id)
+    const material = new THREE.MeshStandardMaterial({
+      color: map ? '#ffffff' : f.base,
+      map,
+      roughness: f.roughness,
+      metalness: 0,
+    })
+    return [id, material]
+  }),
+) as Record<Room, THREE.MeshStandardMaterial>
+
+/** Living-room rug: soft wool field with a darker border, just above the floor. */
+const RUG = {
+  center: [-3.0, 2.5] as [number, number],
+  size: [2.8, 2.0] as [number, number],
+  border: 0.16,
+  y: 0.004,
 } as const
+const RUG_BORDER_MATERIAL = new THREE.MeshStandardMaterial({
+  color: '#8a6d5a',
+  roughness: 1,
+  metalness: 0,
+})
+const RUG_FIELD_MATERIAL = new THREE.MeshStandardMaterial({
+  color: '#d8cbb8',
+  roughness: 1,
+  metalness: 0,
+})
 
 const SKIRTING = { height: 0.09, inset: 0.015 } as const
 
@@ -159,31 +296,30 @@ export function House({ hideShell = false }: { hideShell?: boolean }) {
 
       {ROOM_IDS.map((id) => {
         const r = ROOMS[id]
-        const f = FLOORS[id]
         return (
           <mesh
             key={id}
             name={`floor-${id}`}
             position={[r.center[0], 0.001, r.center[2]]}
             rotation-x={-Math.PI / 2}
+            material={FLOOR_MATERIALS[id]}
             receiveShadow
             onClick={(e) => onFloorClick(id, e)}
           >
             <planeGeometry args={r.size} />
-            {/* slight sheen + thin clearcoat: reads as finished wood/stone, not matte clay */}
-            <meshPhysicalMaterial
-              color={f.color}
-              roughness={f.roughness}
-              metalness={0}
-              sheen={0.35}
-              sheenRoughness={0.55}
-              sheenColor="#d9b892"
-              clearcoat={0.12}
-              clearcoatRoughness={0.45}
-            />
           </mesh>
         )
       })}
+
+      {/* living-room rug: border + field; clicks pass through to the floor below */}
+      <group name="rug" position={[RUG.center[0], RUG.y, RUG.center[1]]} rotation-x={-Math.PI / 2}>
+        <mesh material={RUG_BORDER_MATERIAL} receiveShadow raycast={noRaycast}>
+          <planeGeometry args={RUG.size} />
+        </mesh>
+        <mesh position-z={0.001} material={RUG_FIELD_MATERIAL} receiveShadow raycast={noRaycast}>
+          <planeGeometry args={[RUG.size[0] - RUG.border * 2, RUG.size[1] - RUG.border * 2]} />
+        </mesh>
+      </group>
 
       {WALL_GEOMETRIES.map((geometry, v) => (
         <mesh
