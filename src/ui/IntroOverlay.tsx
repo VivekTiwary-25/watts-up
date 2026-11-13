@@ -24,8 +24,13 @@ export function IntroOverlay() {
       transition={{ duration: reduced ? 0 : 0.45 }}
     >
       <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Watt's Up?</h1>
-      <p className="mt-3 text-sm text-slate-300 md:text-base">Flip switches in a living house and watch your electricity bill react.</p>
-      <Button className="mt-7 h-12 rounded-xl bg-orange-500 px-8 text-base text-white hover:bg-orange-400" onClick={() => setView('overview')}>
+      <p className="mt-3 text-sm text-slate-300 md:text-base">
+        Flip switches in a living house and watch your electricity bill react.
+      </p>
+      <Button
+        className="mt-7 h-12 rounded-xl bg-orange-500 px-8 text-base text-white hover:bg-orange-400"
+        onClick={() => setView('overview')}
+      >
         Step inside
       </Button>
     </motion.section>
