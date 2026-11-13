@@ -4,4 +4,4 @@ class TestResizeObserver implements ResizeObserver {
   disconnect() {}
 }
 
-globalThis.ResizeObserver = TestResizeObserver;
+globalThis.ResizeObserver = TestResizeObserver

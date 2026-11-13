@@ -1,0 +1,12 @@
+# T12-format result
+- Added Prettier 3.10.1, the requested format scripts, config, and ignore rules.
+- Applied formatting only to permitted UI, lib, store, data, test, and app entry files; no behavior changes.
+- Expanded compressed JSX and component bodies using Prettier; added no application logic or tests.
+- Files: package.json, package-lock.json, .prettierrc.json, .prettierignore, and permitted source files listed in T12-format.commits.
+- Verification: `npm test` passed all 47 tests across 7 files.
+- Verification: `npm run build` passed; existing large-chunk warning remains.
+- Verification: scoped Prettier check passed all 26 permitted source files; `git diff --check` passed.
+- Scoped check: `node node_modules/prettier/bin/prettier.cjs --check "src/ui/*.tsx" "!src/ui/HUD.tsx" "src/lib/*.ts" "src/store/*.ts" "src/data/*.ts" "src/test/*.ts" src/App.tsx src/main.tsx`.
+- Open issue: full `npm run format:check` fails on 11 excluded files: src/index.css, src/ui/HUD.tsx, and 9 src/scene files; their owners must format them.
+- Used explicit file lists because the required broad `npm run format` would modify excluded files.
+- Recorded 8 proposed commits in coord/results/T12-format.commits; no git commit, push, or merge performed.
