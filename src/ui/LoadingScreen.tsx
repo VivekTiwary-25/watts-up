@@ -9,7 +9,7 @@ export function LoadingScreen() {
     <AnimatePresence>
       {(active || progress < 100) && (
         <motion.div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-[#0b1020] text-slate-100"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-[#0b1020] text-slate-100 tabular-nums"
           role="status"
           aria-label="Loading your home"
           initial={{ opacity: 1 }}

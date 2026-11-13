@@ -8,18 +8,20 @@ export function TopBar() {
     muted = useHouse((s) => s.muted),
     mute = useHouse((s) => s.toggleMute)
   return (
-    <header className="glass pointer-events-auto flex items-center gap-2 rounded-2xl p-2">
-      <h1 className="mr-auto px-2 text-lg font-semibold tracking-tight">Watt's Up?</h1>
+    <header className="glass pointer-events-auto flex flex-wrap items-center gap-2 rounded-2xl p-2">
+      <h1 className="mr-auto min-w-0 px-1 text-base font-semibold tracking-tight sm:px-2 sm:text-lg">
+        Watt's Up?
+      </h1>
       {view === 'room' && (
         <Button variant="ghost" onClick={back}>
-          <ArrowLeft /> Back to overview
+          <ArrowLeft aria-hidden="true" /> Back to overview
         </Button>
       )}
       <Button variant="secondary" onClick={start}>
-        <Zap /> Power cut
+        <Zap aria-hidden="true" /> Power cut
       </Button>
       <Button variant="ghost" size="icon" aria-label={muted ? 'Unmute' : 'Mute'} onClick={mute}>
-        {muted ? <VolumeX /> : <Volume2 />}
+        {muted ? <VolumeX aria-hidden="true" /> : <Volume2 aria-hidden="true" />}
       </Button>
     </header>
   )

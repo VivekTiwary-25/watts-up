@@ -27,12 +27,14 @@ export function HUD() {
           >
             <div className="flex flex-col gap-3">
               <TopBar />
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <BillPanel />
-                <TargetPanel />
-              </div>
-              <div className="self-start">
-                <ApplianceList />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 sm:flex-1">
+                  <BillPanel />
+                </div>
+                <div className="absolute inset-x-3 bottom-3 max-h-[35svh] space-y-2 overflow-y-auto overscroll-contain sm:static sm:max-h-none sm:w-64 sm:shrink-0 sm:overflow-visible md:w-72">
+                  <TargetPanel />
+                  <ApplianceList />
+                </div>
               </div>
             </div>
             <ApplianceCard />
