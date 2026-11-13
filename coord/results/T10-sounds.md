@@ -1,0 +1,12 @@
+# T10 — Subtle sounds with mute
+- Added gesture-gated Web Audio synthesis; no audio files, dependencies, or services.
+- Clay clicks combine filtered noise and a pitch blip; on clicks have higher pitch.
+- Fan hum uses a quiet filtered oscillator with smooth gain ramps and powered-state tracking.
+- Flicker plays a low rumble; restoring power plays a gentle rising tone.
+- Store mute smoothly ramps master gain; unsupported audio and rejected resume stay silent.
+- Files: src/lib/sound.ts, src/lib/sound.test.ts, src/ui/SoundController.tsx, src/ui/HUD.tsx, src/data/config.ts.
+- Verify: npm test (47 tests passed), npm run build (passed), npm run lint (passed with existing button export warning).
+- Build reports a large vendor-three chunk; no unrelated files changed.
+- Manual check: first pointer/key gesture, appliance toggles, fan picks, power cut/restore, mute/unmute.
+- Open issues: browser listening/subjective volume balance not checked; audio is mocked in tests.
+- Seven proposed commit steps are recorded in coord/results/T10-sounds.commits; no git commits, push, or merge performed.
