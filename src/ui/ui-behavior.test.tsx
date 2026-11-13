@@ -15,7 +15,7 @@ afterEach(() => {
 })
 
 describe('UI behavior', () => {
-  it('updates the bill when Split AC is toggled in the appliance list', () => {
+  it('updates the bill when Split AC is toggled in the appliance list', async () => {
     render(
       <>
         <ApplianceList />
@@ -26,9 +26,9 @@ describe('UI behavior', () => {
     const acSwitch = screen.getByRole('switch', { name: 'Toggle Split AC' })
     expect(screen.getByText('₹798')).toBeTruthy()
     fireEvent.click(acSwitch)
-    expect(screen.getByText('₹2,858')).toBeTruthy()
+    expect(await screen.findByText('₹2,858')).toBeTruthy()
     fireEvent.click(acSwitch)
-    expect(screen.getByText('₹798')).toBeTruthy()
+    expect(await screen.findByText('₹798')).toBeTruthy()
   })
 
   it('shows monthly units, the tip, and one share bar per active appliance', () => {
@@ -140,7 +140,7 @@ describe('UI behavior', () => {
     expect(status.textContent).toBe('₹598 over target')
   })
 
-  it('expands the compact bill and renders new numbers immediately', () => {
+  it('expands the compact bill and counts to the final number', async () => {
     render(<BillPanel />)
     const details = screen.getByRole('button', { name: 'Bill details' })
     expect(details.getAttribute('aria-expanded')).toBe('false')
@@ -150,7 +150,7 @@ describe('UI behavior', () => {
     expect(details.getAttribute('aria-expanded')).toBe('false')
     const { rerender } = render(<AnimatedNumber value={1500} />)
     rerender(<AnimatedNumber value={2500} />)
-    expect(screen.getByText('₹2,500')).toBeTruthy()
+    expect(await screen.findByText('₹2,500')).toBeTruthy()
   })
 
   it('blocks a fourth power-cut pick, confirms three, then restores the saved switches', () => {
