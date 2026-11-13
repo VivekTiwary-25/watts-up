@@ -1,7 +1,7 @@
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { APPLIANCES } from '../data/appliances'
-import { DEFAULT_TARGET_BILL, TARGET_RANGE } from '../data/config'
+import { DEFAULT_TARGET_BILL, HOURS, TARGET_RANGE } from '../data/config'
 import { isPowered, useBill, useHouse } from './useHouse'
 
 beforeEach(() => useHouse.setState(useHouse.getInitialState(), true))
@@ -31,11 +31,11 @@ describe('house store', () => {
     const { setHours, setTarget } = useHouse.getState()
     setHours('ac', 3.5)
     expect(useHouse.getState().hours.ac).toBe(3.5)
-    setHours('ac', -1)
-    expect(useHouse.getState().hours.ac).toBe(0)
-    setHours('ac', 25)
+    setHours('ac', HOURS.min - 1)
+    expect(useHouse.getState().hours.ac).toBe(HOURS.min)
+    setHours('ac', HOURS.max + 1)
     setHours('ac', NaN)
-    expect(useHouse.getState().hours.ac).toBe(24)
+    expect(useHouse.getState().hours.ac).toBe(HOURS.max)
     setTarget(1750)
     expect(useHouse.getState().targetBill).toBe(1750)
     setTarget(0)
@@ -101,23 +101,23 @@ describe('house store', () => {
     })
   })
 
-  it('routes toggles to picks during every power-cut phase', () => {
+  it('freezes confirmed picks until retry returns to choosing', () => {
     const actions = useHouse.getState()
-    const saved = actions.on
     actions.startPowerCut()
-    actions.toggle('ac')
-    expect(useHouse.getState().picks).toEqual(['ac'])
-    expect(useHouse.getState().on).toEqual(saved)
-    for (const phase of ['flicker', 'choosing', 'result'] as const) {
-      actions.setPowerCutPhase(phase)
-      expect(isPowered(useHouse.getState(), 'ac')).toBe(true)
-      expect(isPowered(useHouse.getState(), 'fan')).toBe(false)
-    }
-    actions.restorePower()
-    expect(isPowered(useHouse.getState(), 'ac')).toBe(false)
-    expect(isPowered(useHouse.getState(), 'fan')).toBe(true)
-    actions.restorePower()
-    expect(useHouse.getState().on).toEqual(saved)
+    actions.setPowerCutPhase('choosing')
+    actions.pick('fan')
+    actions.pick('light')
+    actions.pick('fridge')
+    expect(actions.confirmPicks()).toBe(true)
+    actions.pick('fan')
+    expect(useHouse.getState().picks).toEqual(['fan', 'light', 'fridge'])
+    expect(actions.confirmPicks()).toBe(false)
+    actions.retryPicks()
+    expect(useHouse.getState().powerCut).toBe('choosing')
+    expect(useHouse.getState().picks).toEqual(['fan', 'light', 'fridge'])
+    actions.pick('fan')
+    expect(useHouse.getState().picks).toEqual(['light', 'fridge'])
+    expect(isPowered(useHouse.getState(), 'fan')).toBe(false)
   })
 
   it('memoizes the bill by switches and hours', () => {
