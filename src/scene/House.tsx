@@ -29,7 +29,8 @@ const SKIRTING_MATERIAL = new THREE.MeshStandardMaterial({
 })
 
 /** Grey-box shell: base slab, per-room floor tiles, walls with skirting (no roof). */
-export function House() {
+export function House({ hideShell = false }: { hideShell?: boolean }) {
+  if (hideShell) return null
   return (
     <group name="house">
       {/* base slab, slightly larger than the plan */}
