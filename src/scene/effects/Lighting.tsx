@@ -12,7 +12,11 @@ const SKY = A.hemiSky.map((c) => new THREE.Color(c))
 const SUN = A.sun.map((c) => new THREE.Color(c))
 
 /** Blend a [lightsOn, lightsOff, powerCut] triple by light level and blackout. */
-function mix3(v: readonly [number, number, number] | readonly number[], light: number, black: number) {
+function mix3(
+  v: readonly [number, number, number] | readonly number[],
+  light: number,
+  black: number,
+) {
   return lerp(lerp(v[1], v[0], light), v[2], black)
 }
 function mixColor3(out: THREE.Color, v: THREE.Color[], light: number, black: number) {
@@ -100,7 +104,12 @@ export function RoomLights() {
               distance={L.warmDistance}
               decay={2}
             />
-            <mesh geometry={panelGeo} material={panelMat} position={[x, under, z]} rotation-x={Math.PI / 2} />
+            <mesh
+              geometry={panelGeo}
+              material={panelMat}
+              position={[x, under, z]}
+              rotation-x={Math.PI / 2}
+            />
           </group>
         )
       })}

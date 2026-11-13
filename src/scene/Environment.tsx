@@ -7,7 +7,9 @@ export function Environment() {
   useEffect(() => {
     let alive = true
     glbExists('/models/env.hdr').then((exists) => alive && setHasHdr(exists))
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [])
 
   return hasHdr ? (

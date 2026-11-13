@@ -18,7 +18,8 @@ function makeNoiseTexture(): THREE.Texture {
     const s = Math.sin(i * 127.1 + 311.7) * 43758.5453
     return s - Math.floor(s)
   })
-  const at = (gx: number, gy: number) => grid[((gy + cells) % cells) * cells + ((gx + cells) % cells)]
+  const at = (gx: number, gy: number) =>
+    grid[((gy + cells) % cells) * cells + ((gx + cells) % cells)]
   const smooth = (t: number) => t * t * (3 - 2 * t)
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {

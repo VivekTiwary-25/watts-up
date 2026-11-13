@@ -6,7 +6,13 @@ import type { Vec3 } from '../layout'
 export type DriveState = Pick<HouseState, 'powerCut' | 'on' | 'picks' | 'savedOn'>
 
 /** Frame-rate independent exponential ease toward `target`. Snaps when `reduce` is true. */
-export function ease(current: number, target: number, dt: number, reduce: boolean, rate: number = VISUALS.easeRate): number {
+export function ease(
+  current: number,
+  target: number,
+  dt: number,
+  reduce: boolean,
+  rate: number = VISUALS.easeRate,
+): number {
   if (reduce) return target
   const next = current + (target - current) * (1 - Math.exp(-dt * rate))
   return Math.abs(next - target) < 1e-3 ? target : next

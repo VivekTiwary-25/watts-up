@@ -2,10 +2,28 @@ import { describe, expect, it } from 'vitest'
 import { APPLIANCES, type ApplianceId } from '@/data/appliances'
 import { POWER_CUT, VISUALS } from '@/data/config'
 import { PLUGS, WALL, WIRE_ORIGIN } from '../layout'
-import { bezierAt, blackoutLevel, ease, flickerFactor, targetLevel, wireHeat, wireMid, wireWidth, type DriveState } from './drive'
+import {
+  bezierAt,
+  blackoutLevel,
+  ease,
+  flickerFactor,
+  targetLevel,
+  wireHeat,
+  wireMid,
+  wireWidth,
+  type DriveState,
+} from './drive'
 
-const allOff = Object.fromEntries(APPLIANCES.map((a) => [a.id, false])) as Record<ApplianceId, boolean>
-const base: DriveState = { powerCut: 'off', on: { ...allOff, fan: true, light: true }, picks: [], savedOn: null }
+const allOff = Object.fromEntries(APPLIANCES.map((a) => [a.id, false])) as Record<
+  ApplianceId,
+  boolean
+>
+const base: DriveState = {
+  powerCut: 'off',
+  on: { ...allOff, fan: true, light: true },
+  picks: [],
+  savedOn: null,
+}
 
 describe('ease', () => {
   it('moves toward target without overshoot', () => {
@@ -24,7 +42,9 @@ describe('flickerFactor', () => {
     expect(flickerFactor(100, POWER_CUT.flickerMs, true)).toBe(0)
   })
   it('actually flickers (has both dropouts and on frames)', () => {
-    const vals = Array.from({ length: 20 }, (_, i) => flickerFactor(i * 70 + 1, POWER_CUT.flickerMs))
+    const vals = Array.from({ length: 20 }, (_, i) =>
+      flickerFactor(i * 70 + 1, POWER_CUT.flickerMs),
+    )
     expect(vals.some((v) => v < 0.1)).toBe(true)
     expect(vals.some((v) => v > 0.5)).toBe(true)
   })

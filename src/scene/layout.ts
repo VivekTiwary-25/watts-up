@@ -23,7 +23,14 @@ export interface RoomLayout {
   cameraTarget: Vec3
 }
 
-function room(id: Room, x0: number, x1: number, z0: number, z1: number, camDir: [number, number]): RoomLayout {
+function room(
+  id: Room,
+  x0: number,
+  x1: number,
+  z0: number,
+  z1: number,
+  camDir: [number, number],
+): RoomLayout {
   const cx = (x0 + x1) / 2
   const cz = (z0 + z1) / 2
   const span = Math.max(x1 - x0, z1 - z0)
@@ -60,12 +67,36 @@ export interface Anchor {
 
 /** Appliances that appear once. `light` is in LIGHT_ANCHORS (one per room). */
 export const ANCHORS: Anchor[] = [
-  { id: 'tv', room: 'living', position: [-2.5, 0.85, 4.6], size: [1.4, 0.8, 0.12], rotationY: Math.PI },
+  {
+    id: 'tv',
+    room: 'living',
+    position: [-2.5, 0.85, 4.6],
+    size: [1.4, 0.8, 0.12],
+    rotationY: Math.PI,
+  },
   { id: 'fan', room: 'living', position: [-2.5, 2.35, 2.5], size: [1.2, 0.12, 1.2] },
-  { id: 'fridge', room: 'kitchen', position: [5.45, 0.9, 0.7], size: [0.8, 1.8, 0.75], rotationY: -Math.PI / 2 },
-  { id: 'microwave', room: 'kitchen', position: [5.5, 1.1, 3.2], size: [0.55, 0.32, 0.4], rotationY: -Math.PI / 2 },
+  {
+    id: 'fridge',
+    room: 'kitchen',
+    position: [5.45, 0.9, 0.7],
+    size: [0.8, 1.8, 0.75],
+    rotationY: -Math.PI / 2,
+  },
+  {
+    id: 'microwave',
+    room: 'kitchen',
+    position: [5.5, 1.1, 3.2],
+    size: [0.55, 0.32, 0.4],
+    rotationY: -Math.PI / 2,
+  },
   { id: 'ac', room: 'bedroom', position: [-2, 2.15, -4.75], size: [1.0, 0.3, 0.25] },
-  { id: 'washer', room: 'bathroom', position: [5.4, 0.45, -1.0], size: [0.7, 0.9, 0.65], rotationY: -Math.PI / 2 },
+  {
+    id: 'washer',
+    room: 'bathroom',
+    position: [5.4, 0.45, -1.0],
+    size: [0.7, 0.9, 0.65],
+    rotationY: -Math.PI / 2,
+  },
   { id: 'geyser', room: 'bathroom', position: [4, 1.9, -4.7], size: [0.45, 0.7, 0.4] },
 ]
 
@@ -87,15 +118,27 @@ export const LIGHT_ANCHORS: Anchor[] = ROOM_IDS.map((r) => {
 export const ALL_ANCHORS: Anchor[] = [...ANCHORS, ...LIGHT_ANCHORS]
 
 /** Electricity meter, on the outside of the east (kitchen) wall. */
-export const METER: { position: Vec3; size: Vec3 } = { position: [6.2, 1.5, 4], size: [0.12, 0.5, 0.35] }
+export const METER: { position: Vec3; size: Vec3 } = {
+  position: [6.2, 1.5, 4],
+  size: [0.12, 0.5, 0.35],
+}
 
 // ---- energy wires --------------------------------------------------------
 /** Top of the meter, where the riser leaves it. */
-export const METER_TOP: Vec3 = [METER.position[0], METER.position[1] + METER.size[1] / 2, METER.position[2]]
+export const METER_TOP: Vec3 = [
+  METER.position[0],
+  METER.position[1] + METER.size[1] / 2,
+  METER.position[2],
+]
 /** Riser top, just above the walls: every wire fans out from here. */
 export const WIRE_ORIGIN: Vec3 = [METER.position[0] + 0.05, WALL.height + 0.25, METER.position[2]]
 
-export interface Plug { key: string; id: ApplianceId; room: Room; position: Vec3 }
+export interface Plug {
+  key: string
+  id: ApplianceId
+  room: Room
+  position: Vec3
+}
 
 /** Where each wire lands: the top centre of its appliance (one per room for `light`). */
 export const PLUGS: Plug[] = ALL_ANCHORS.map((a) => ({
@@ -106,10 +149,19 @@ export const PLUGS: Plug[] = ALL_ANCHORS.map((a) => ({
 }))
 
 // ---- walls ---------------------------------------------------------------
-export interface WallSegment { position: Vec3; size: Vec3 }
+export interface WallSegment {
+  position: Vec3
+  size: Vec3
+}
 
 /** A straight wall along `axis` at `fixed`, from `a` to `b`, with door gaps centred at `doors`. */
-function wall(axis: 'x' | 'z', fixed: number, a: number, b: number, doors: number[] = []): WallSegment[] {
+function wall(
+  axis: 'x' | 'z',
+  fixed: number,
+  a: number,
+  b: number,
+  doors: number[] = [],
+): WallSegment[] {
   const cuts = [...doors].sort((p, q) => p - q)
   const out: WallSegment[] = []
   let start = a
@@ -120,7 +172,8 @@ function wall(axis: 'x' | 'z', fixed: number, a: number, b: number, doors: numbe
       const mid = (start + end) / 2
       out.push({
         position: axis === 'x' ? [mid, WALL.height / 2, fixed] : [fixed, WALL.height / 2, mid],
-        size: axis === 'x' ? [len, WALL.height, WALL.thickness] : [WALL.thickness, WALL.height, len],
+        size:
+          axis === 'x' ? [len, WALL.height, WALL.thickness] : [WALL.thickness, WALL.height, len],
       })
     }
     if (d !== Infinity) start = d + WALL.door / 2

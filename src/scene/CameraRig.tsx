@@ -39,15 +39,19 @@ export function CameraRig() {
     const t = phase <= 1 ? phase : 2 - phase
     const mix = (a: number, b: number) => a + (b - a) * t
     void c.setLookAt(
-      mix(INTRO_CAMERA.start.cameraPos[0], INTRO_CAMERA.end.cameraPos[0]), INTRO_CAMERA.start.cameraPos[1], INTRO_CAMERA.start.cameraPos[2],
-      ...INTRO_CAMERA.start.cameraTarget, false,
+      mix(INTRO_CAMERA.start.cameraPos[0], INTRO_CAMERA.end.cameraPos[0]),
+      INTRO_CAMERA.start.cameraPos[1],
+      INTRO_CAMERA.start.cameraPos[2],
+      ...INTRO_CAMERA.start.cameraTarget,
+      false,
     )
   })
 
   // Esc → back to overview (UI back button lives in T04).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && useHouse.getState().view === 'room') useHouse.getState().backToOverview()
+      if (e.key === 'Escape' && useHouse.getState().view === 'room')
+        useHouse.getState().backToOverview()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

@@ -7,7 +7,10 @@ import { glbExists, modelUrl } from './glb'
 import type { Anchor } from './layout'
 import { useApplianceInteraction, useHighlighted } from './useApplianceInteraction'
 
-class ModelBoundary extends Component<{ url: string; fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+class ModelBoundary extends Component<
+  { url: string; fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
   state = { failed: false }
   static getDerivedStateFromError() {
     return { failed: true }
@@ -36,13 +39,22 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
     const [sx, sy, sz] = anchor.size
     const scale = Math.min(sx / (dims.x || 1), sy / (dims.y || 1), sz / (dims.z || 1))
     const center = box.getCenter(new THREE.Vector3())
-    const offset: [number, number, number] = [-center.x * scale, -center.y * scale, -center.z * scale]
+    const offset: [number, number, number] = [
+      -center.x * scale,
+      -center.y * scale,
+      -center.z * scale,
+    ]
     return { object, scale, offset }
   }, [scene, anchor.size])
 
   return (
     <Select enabled={highlighted}>
-      <group name={anchor.id} position={anchor.position} rotation-y={anchor.rotationY ?? 0} {...handlers}>
+      <group
+        name={anchor.id}
+        position={anchor.position}
+        rotation-y={anchor.rotationY ?? 0}
+        {...handlers}
+      >
         <primitive object={object} position={offset} scale={scale} />
       </group>
     </Select>

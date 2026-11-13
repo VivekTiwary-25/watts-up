@@ -47,7 +47,14 @@ export function Ac() {
       <group position={[x, y - ac.size[1] / 2, z + ac.size[2] / 2]} rotation-x={TILT}>
         <mesh geometry={hazeGeo} material={mat} raycast={() => null} />
       </group>
-      <pointLight ref={light} position={[x, 1.7, (z + c[2]) / 2]} color={V.light} intensity={0} distance={5} decay={2} />
+      <pointLight
+        ref={light}
+        position={[x, 1.7, (z + c[2]) / 2]}
+        color={V.light}
+        intensity={0}
+        distance={5}
+        decay={2}
+      />
     </group>
   )
 }

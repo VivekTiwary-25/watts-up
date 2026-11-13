@@ -48,7 +48,11 @@ export function PostFX() {
         hiddenEdgeColor={0x1b4a5a}
         xRay={false}
       />
-      <Vignette eskil={false} offset={QUALITY.vignette.offset} darkness={QUALITY.vignette.darkness} />
+      <Vignette
+        eskil={false}
+        offset={QUALITY.vignette.offset}
+        darkness={QUALITY.vignette.darkness}
+      />
     </EffectComposer>
   )
 }

@@ -33,13 +33,23 @@ export const easeRate = (m: Mains = MAINS) => (m.phase === 'flicker' ? 40 : VISU
  * Advance mains state one frame (mutates `m`). Power cut: 'flicker' stutters for
  * POWER_CUT.flickerMs then dies; 'choosing'/'result' stay dark (only picks run).
  */
-export function stepMains(m: Mains, s: Pick<HouseState, 'powerCut'>, now: number, dt: number, reduce: boolean): Mains {
+export function stepMains(
+  m: Mains,
+  s: Pick<HouseState, 'powerCut'>,
+  now: number,
+  dt: number,
+  reduce: boolean,
+): Mains {
   if (s.powerCut !== m.phase) {
     m.phase = s.powerCut
     m.since = now
   }
   m.flicker =
-    s.powerCut === 'off' ? 1 : s.powerCut === 'flicker' ? flickerFactor(now - m.since, POWER_CUT.flickerMs, reduce) : 0
+    s.powerCut === 'off'
+      ? 1
+      : s.powerCut === 'flicker'
+        ? flickerFactor(now - m.since, POWER_CUT.flickerMs, reduce)
+        : 0
   m.blackout = ease(m.blackout, blackoutLevel(s, m.flicker), dt, reduce, easeRate(m))
   return m
 }

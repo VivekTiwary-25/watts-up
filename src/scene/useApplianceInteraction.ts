@@ -27,7 +27,8 @@ export function useApplianceInteraction(id: ApplianceId) {
       },
       onPointerOut(e: ThreeEvent<PointerEvent>) {
         e.stopPropagation()
-        if (useHouse.getState().hovered === id && e.pointerType !== 'touch') useHouse.getState().setHovered(null)
+        if (useHouse.getState().hovered === id && e.pointerType !== 'touch')
+          useHouse.getState().setHovered(null)
         document.body.style.cursor = ''
       },
       onPointerDown(e: ThreeEvent<PointerEvent>) {

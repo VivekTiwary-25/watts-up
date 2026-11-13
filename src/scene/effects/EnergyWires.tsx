@@ -18,7 +18,12 @@ type LineRef = ComponentRef<typeof Line>
 type CurveRef = ComponentRef<typeof QuadraticBezierLine>
 
 /** Per-frame material update shared by the riser and every wire. No allocations. */
-function drive(line: Pick<LineRef, 'material'> | null, base: THREE.Color, level: number, dt: number) {
+function drive(
+  line: Pick<LineRef, 'material'> | null,
+  base: THREE.Color,
+  level: number,
+  dt: number,
+) {
   const m = line?.material
   if (!m) return
   m.opacity = lerp(W.offOpacity, W.onOpacity, level)
@@ -26,7 +31,12 @@ function drive(line: Pick<LineRef, 'material'> | null, base: THREE.Color, level:
   if (!MOTION.reduce) m.dashOffset -= Math.min(dt, 0.1) * W.flow * level
 }
 
-const dashProps = { dashed: true, dashScale: W.dashScale, dashSize: W.dashSize, gapSize: W.gapSize } as const
+const dashProps = {
+  dashed: true,
+  dashScale: W.dashScale,
+  dashSize: W.dashSize,
+  gapSize: W.gapSize,
+} as const
 
 /** One wire, meter → plug: arcs over the walls, width ∝ watts, dashes flow while powered. */
 function Wire({ plug }: { plug: Plug }) {
