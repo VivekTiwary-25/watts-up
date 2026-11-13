@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { motion, useAnimationControls } from 'motion/react'
+import { AnimatePresence, motion, useAnimationControls, useIsPresent } from 'motion/react'
 import { X } from 'lucide-react'
 import { APPLIANCE_BY_ID, type ApplianceId } from '@/data/appliances'
 import { POWER_CUT, TARIFF } from '@/data/config'
@@ -22,6 +22,21 @@ const REDUCED_FLICKER_MS = 400
 const vignetteStyle = {
   background:
     'radial-gradient(ellipse at 50% 38%, rgba(7,11,22,0.42) 0%, rgba(7,11,22,0.78) 58%, rgba(7,11,22,0.94) 100%)',
+}
+
+// Spring-free ease-out (quint-like) shared by the card transitions.
+const CARD_EASE = [0.22, 1, 0.36, 1] as const
+
+const cardMotion = {
+  initial: { opacity: 0, y: 14, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.32, ease: CARD_EASE } },
+  exit: { opacity: 0, y: 8, scale: 0.985, transition: { duration: 0.24, ease: CARD_EASE } },
+}
+
+const reducedCardMotion = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.15, ease: 'linear' as const } },
+  exit: { opacity: 0, transition: { duration: 0.12, ease: 'linear' as const } },
 }
 
 const enterChild = {
@@ -69,9 +84,11 @@ export function PowerCutOverlay() {
           {!reduced && <Lightning />}
         </>
       )}
-      <div className="absolute inset-x-0 bottom-0 flex justify-center px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        {phase === 'choosing' && <ChoosingCard reduced={reduced} />}
-        {phase === 'result' && <ResultCard reduced={reduced} />}
+      <div className="absolute inset-x-0 bottom-0 grid justify-items-center px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] *:col-start-1 *:row-start-1 *:self-end">
+        <AnimatePresence initial={!reduced}>
+          {phase === 'choosing' && <ChoosingCard key="choosing" reduced={reduced} />}
+          {phase === 'result' && <ResultCard key="result" reduced={reduced} />}
+        </AnimatePresence>
       </div>
     </div>
   )
@@ -298,6 +315,8 @@ function CardShell({
   children: ReactNode
 }) {
   const controls = useAnimationControls()
+  const isPresent = useIsPresent()
+  const card = reduced ? reducedCardMotion : cardMotion
 
   useEffect(() => {
     if (reduced || shakeAt == null) return
@@ -311,17 +330,24 @@ function CardShell({
     <motion.section
       role="region"
       aria-label={label}
-      className="glass pointer-events-auto max-h-[min(36rem,calc(100svh-2rem))] w-full max-w-md overflow-y-auto rounded-3xl p-3"
-      animate={controls}
+      aria-hidden={isPresent ? undefined : true}
+      inert={!isPresent}
+      className="glass pointer-events-auto max-h-[min(36rem,calc(100svh-2rem))] w-full max-w-md origin-bottom overflow-y-auto rounded-3xl p-3 data-[leaving=true]:pointer-events-none"
+      data-leaving={isPresent ? undefined : true}
+      initial={card.initial}
+      animate={card.animate}
+      exit={card.exit}
     >
-      <motion.div
-        initial={reduced ? false : 'hidden'}
-        animate="show"
-        variants={
-          reduced ? undefined : { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
-        }
-      >
-        {children}
+      <motion.div animate={controls}>
+        <motion.div
+          initial={reduced ? false : 'hidden'}
+          animate="show"
+          variants={
+            reduced ? undefined : { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
+          }
+        >
+          {children}
+        </motion.div>
       </motion.div>
     </motion.section>
   )
