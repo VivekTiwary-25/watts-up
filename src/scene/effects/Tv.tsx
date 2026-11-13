@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { VISUALS } from '@/data/config'
+import { useDispose } from '../useDispose'
 import { MOTION } from './mains'
 import { anchorOf, useLevel } from './useLevel'
 
@@ -12,15 +13,25 @@ const T = VISUALS.tv
 export function Tv() {
   const level = useLevel('tv')
   const mat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: '#05070a', emissive: T.screen, emissiveIntensity: 0, roughness: 0.25, toneMapped: false }),
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: '#05070a',
+        emissive: T.screen,
+        emissiveIntensity: 0,
+        roughness: 0.25,
+        toneMapped: false,
+      }),
     [],
   )
   const geo = useMemo(() => new THREE.PlaneGeometry(tv.size[0] * 0.9, tv.size[1] * 0.82), [])
+  useDispose(mat, geo)
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
     // two incommensurate sines + a slow drift read as changing scenes, not a strobe
-    const f = MOTION.reduce ? 0 : (Math.sin(t * 7.3) * 0.5 + Math.sin(t * 2.1 + 1.3) * 0.5) * T.flicker
+    const f = MOTION.reduce
+      ? 0
+      : (Math.sin(t * 7.3) * 0.5 + Math.sin(t * 2.1 + 1.3) * 0.5) * T.flicker
     mat.emissiveIntensity = T.intensity * level.v * (1 - T.flicker + f)
   })
 

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { VISUALS } from '@/data/config'
+import { useDispose } from '../useDispose'
 import { MOTION } from './mains'
 import { anchorOf, useLevel } from './useLevel'
 
@@ -18,7 +19,8 @@ function makeNoiseTexture(): THREE.Texture {
     const s = Math.sin(i * 127.1 + 311.7) * 43758.5453
     return s - Math.floor(s)
   })
-  const at = (gx: number, gy: number) => grid[((gy + cells) % cells) * cells + ((gx + cells) % cells)]
+  const at = (gx: number, gy: number) =>
+    grid[((gy + cells) % cells) * cells + ((gx + cells) % cells)]
   const smooth = (t: number) => t * t * (3 - 2 * t)
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
@@ -86,6 +88,7 @@ export function Geyser() {
       toneMapped: false,
     })
   }, [])
+  useDispose(mat, mat.map, mat.alphaMap)
 
   useFrame(({ clock }, dt) => {
     mat.opacity = G.opacity * level.v

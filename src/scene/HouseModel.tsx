@@ -1,16 +1,31 @@
-import { Component, Suspense, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { glbExists } from './glb'
 import { hideShell } from './hideShell'
+import { markShadowsDirty } from './useQuality'
 
 const URL = '/models/house.glb'
 
 class ModelBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
-  static getDerivedStateFromError() { return { failed: true } }
-  componentDidCatch() { useGLTF.clear(URL) }
-  render() { return this.state.failed ? null : this.props.children }
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+  componentDidCatch() {
+    useGLTF.clear(URL)
+  }
+  render() {
+    return this.state.failed ? null : this.props.children
+  }
 }
 
 function LoadedHouse() {
@@ -31,6 +46,7 @@ function LoadedHouse() {
     const center = bounds.getCenter(new THREE.Vector3())
     const scale = Math.min(12 / (size.x || 1), 10 / (size.z || 1))
     setFit({ scale, position: [-center.x * scale, -bounds.min.y * scale, -center.z * scale] })
+    markShadowsDirty() // shadow maps are cached: re-render them with the house in
   }, [object])
 
   return fit ? <primitive object={object} scale={fit.scale} position={fit.position} /> : null
@@ -41,8 +57,16 @@ export function HouseModel() {
   useEffect(() => {
     let alive = true
     glbExists(URL).then((ok) => alive && setExists(ok))
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [])
   if (!exists) return null
-  return <ModelBoundary><Suspense fallback={null}><LoadedHouse /></Suspense></ModelBoundary>
+  return (
+    <ModelBoundary>
+      <Suspense fallback={null}>
+        <LoadedHouse />
+      </Suspense>
+    </ModelBoundary>
+  )
 }

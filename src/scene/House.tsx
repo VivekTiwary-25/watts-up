@@ -1,6 +1,8 @@
 import * as THREE from 'three'
+import type { ThreeEvent } from '@react-three/fiber'
 import { useHouse } from '@/store/useHouse'
-import { FLOOR, ROOMS, ROOM_IDS, WALLS } from './layout'
+import { FLOOR, ROOMS, ROOM_IDS, WALLS, type Room, type Vec3 } from './layout'
+import { mergeBoxes } from './mergeBoxes'
 
 /** Warm, dark wood per room (bathroom: cool stone). Roughness varies a touch per room. */
 const FLOORS = {
@@ -28,9 +30,62 @@ const SKIRTING_MATERIAL = new THREE.MeshStandardMaterial({
   metalness: 0,
 })
 
+/**
+ * Static walls baked into one geometry per tint variant (3 draw calls instead of one per
+ * segment), skirting into one more. Built once, shared for the app's lifetime.
+ */
+const WALL_GEOMETRIES = WALL_MATERIALS.map((_, v) =>
+  mergeBoxes(WALLS.filter((_, i) => i % WALL_MATERIALS.length === v)),
+)
+const SKIRTING_GEOMETRY = mergeBoxes(
+  WALLS.map((w) => ({
+    position: [w.position[0], SKIRTING.height / 2, w.position[2]] as Vec3,
+    size: [w.size[0] + SKIRTING.inset * 2, SKIRTING.height, w.size[2] + SKIRTING.inset * 2] as Vec3,
+  })),
+)
+
+/** Walls never block or receive pointer events: only appliances (and floors) are targets. */
+const noRaycast = () => null
+
 /** Grey-box shell: base slab, per-room floor tiles, walls with skirting (no roof). */
+/** Click a floor: clears hover/selection; in overview it also flies into that room. */
+function onFloorClick(id: Room, e: ThreeEvent<MouseEvent>) {
+  if (e.delta > 6) return // camera drag
+  const s = useHouse.getState()
+  s.select(null)
+  s.setHovered(null)
+  if (s.view === 'overview') {
+    e.stopPropagation()
+    s.goToRoom(id)
+  }
+}
+
+/** Raycastable but never drawn (material.visible = false skips colour + shadow passes). */
+const HIDDEN_MATERIAL = new THREE.MeshBasicMaterial({ visible: false })
+
 export function House({ hideShell = false }: { hideShell?: boolean }) {
-  if (hideShell) return null
+  if (hideShell) {
+    // house.glb replaces the shell, but the floors stay as invisible room click targets
+    return (
+      <group name="house-hit-floors">
+        {ROOM_IDS.map((id) => {
+          const r = ROOMS[id]
+          return (
+            <mesh
+              key={id}
+              name={`floor-${id}`}
+              position={[r.center[0], 0.001, r.center[2]]}
+              rotation-x={-Math.PI / 2}
+              material={HIDDEN_MATERIAL}
+              onClick={(e) => onFloorClick(id, e)}
+            >
+              <planeGeometry args={r.size} />
+            </mesh>
+          )
+        })}
+      </group>
+    )
+  }
   return (
     <group name="house">
       {/* base slab, slightly larger than the plan */}
@@ -49,16 +104,7 @@ export function House({ hideShell = false }: { hideShell?: boolean }) {
             position={[r.center[0], 0.001, r.center[2]]}
             rotation-x={-Math.PI / 2}
             receiveShadow
-            onClick={(e) => {
-              if (e.delta > 6) return // camera drag
-              const s = useHouse.getState()
-              s.select(null)
-              s.setHovered(null)
-              if (s.view === 'overview') {
-                e.stopPropagation()
-                s.goToRoom(id)
-              }
-            }}
+            onClick={(e) => onFloorClick(id, e)}
           >
             <planeGeometry args={r.size} />
             {/* slight sheen + thin clearcoat: reads as finished wood/stone, not matte clay */}
@@ -76,33 +122,26 @@ export function House({ hideShell = false }: { hideShell?: boolean }) {
         )
       })}
 
-      {WALLS.map((w, i) => (
-        // stopPropagation: walls block clicks so you can't pick a floor/appliance through them
+      {WALL_GEOMETRIES.map((geometry, v) => (
         <mesh
-          key={i}
-          position={w.position}
-          material={WALL_MATERIALS[i % WALL_MATERIALS.length]}
+          key={v}
+          name={`walls-${v}`}
+          geometry={geometry}
+          material={WALL_MATERIALS[v]}
           castShadow
           receiveShadow
-          onClick={(e) => e.stopPropagation()}
-        >
-          <boxGeometry args={w.size} />
-        </mesh>
+          raycast={noRaycast}
+        />
       ))}
 
       {/* skirting: a dark band hugging the foot of every wall segment */}
-      {WALLS.map((w, i) => (
-        <mesh
-          key={`skirt-${i}`}
-          position={[w.position[0], SKIRTING.height / 2, w.position[2]]}
-          material={SKIRTING_MATERIAL}
-          receiveShadow
-        >
-          <boxGeometry
-            args={[w.size[0] + SKIRTING.inset * 2, SKIRTING.height, w.size[2] + SKIRTING.inset * 2]}
-          />
-        </mesh>
-      ))}
+      <mesh
+        name="skirting"
+        geometry={SKIRTING_GEOMETRY}
+        material={SKIRTING_MATERIAL}
+        receiveShadow
+        raycast={noRaycast}
+      />
     </group>
   )
 }

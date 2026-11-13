@@ -7,7 +7,9 @@ import { useHouse } from '@/store/useHouse'
 import { ease, targetLevel } from './drive'
 import { MAINS, MOTION, easeRate } from './mains'
 
-export interface Level { v: number }
+export interface Level {
+  v: number
+}
 
 /**
  * Eased 0..1 "how much is this appliance running" for effects. Updated in useFrame (no re-renders).
@@ -16,7 +18,13 @@ export interface Level { v: number }
 export function useLevel(id: ApplianceId): Level {
   const [level] = useState<Level>(() => ({ v: 0 }))
   useFrame((_, dt) => {
-    level.v = ease(level.v, targetLevel(useHouse.getState(), id, MAINS.flicker), dt, MOTION.reduce, easeRate())
+    level.v = ease(
+      level.v,
+      targetLevel(useHouse.getState(), id, MAINS.flicker),
+      dt,
+      MOTION.reduce,
+      easeRate(),
+    )
   })
   return level
 }
