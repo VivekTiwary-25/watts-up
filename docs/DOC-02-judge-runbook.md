@@ -10,8 +10,8 @@ Bill **Rs 850** (158.34 units). Target **Rs 1,500**, "Rs 650 under target". On: 
 
 | # | Time | Action | Expected output |
 |---|---|---|---|
-| 1 | 0:00 | Wait for loading, press the button on the intro screen to enter the house. | Dollhouse overview of the villa with the bill panel and target panel. |
-| 2 | 0:10 | Click a floor button (Ground / First / Top). | The house is sliced and you look down into that floor. |
+| 1 | 0:00 | Wait for loading, press the button on the intro screen to enter the house. | Dollhouse overview of the rooms with the bill panel and target panel. |
+| 2 | 0:10 | Click **Villa** in the top bar, then **Rooms** to come back. | The villa is sliced at the ground floor and you look down into it; Rooms returns to the interactive dollhouse. |
 | 3 | 0:20 | Click an appliance (in the list or in 3D). | Its card opens with a switch and an hours control. |
 | 4 | 0:25 | Turn the Split AC on. | Bill rises from Rs 850 to **Rs 2,927**. The target panel flips to over target. |
 | 5 | 0:35 | Turn the AC off again, drag the target slider. | Bill returns to Rs 850. The ring and "under target" text follow the slider. |

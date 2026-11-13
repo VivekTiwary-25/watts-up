@@ -11,7 +11,7 @@ Problem (PS-04): people cannot see which appliances drive their electricity bill
 - Live monthly bill that updates when you toggle an appliance or change its hours.
 - Target bill with a progress ring and an "under / over target" message.
 - Power Cut twist: pick exactly 3 appliances for the inverter; the result card shows comfort, backup hours, cost per hour and the best combination.
-- 3-level Bali hillside villa with section-cut floors (Ground / First / Top) and clickable 3D appliances.
+- A sunset intro around a 3-level Bali hillside villa, then a 3D dollhouse with real, clickable appliance models; a Villa / Rooms toggle shows the villa sliced open at the ground floor (section cut).
 - Reduced-motion support and keyboard-operable controls.
 
 ## Setup (no secrets)
@@ -44,5 +44,6 @@ Everything is built in. 10 appliances, a 30-day month, a fictional slab tariff a
 
 - The AC is a stylised placeholder model.
 - The villa is heavy (about 50 MB); best on a laptop with a real GPU.
+- Appliances are interactive in the Rooms view; the Villa view is look-only.
 - Tariff, battery and comfort numbers are fictional.
 - Nothing is saved between visits; reload resets everything.
