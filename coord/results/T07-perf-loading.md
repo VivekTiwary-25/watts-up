@@ -1,0 +1,14 @@
+# T07 — Bundle split and loading screen
+- Added Three deduplication and Vite 8 Rolldown codeSplitting groups for Three, R3F/postprocessing, and Motion/GSAP; no dependencies added.
+- Added named `LoadingScreen` export: full-screen navy overlay, app name, glowing progress bar, accessible progress values, Motion exit, and zero-duration reduced-motion exit.
+- Added page title, description, navy theme color, and inline SVG lightning favicon; retained English language.
+- Changed files: `vite.config.ts`, `src/ui/LoadingScreen.tsx`, `index.html`, and this result plus the requested `.commits` ledger. `src/main.tsx` needed no change.
+- Before JS: single entry 1,376.97 kB (392.06 kB gzip).
+- After JS: entry 287.33 kB (93.58 gzip), Three 742.90 kB (187.53 gzip), R3F 202.39 kB (63.72 gzip), animation 142.80 kB (48.16 gzip), runtime 0.72 kB (0.42 gzip).
+- CSS: before 42.70 kB (8.20 gzip), after 43.40 kB (8.37 gzip). Splitting improves cache boundaries; it does not defer the existing static imports.
+- Verification: `npm test` passes all 27 tests; `npm run build` passes; `git diff --check` passes.
+- Additional inline Node/JSDOM assertions passed for initial 0%, live 42%, active at 100%, completed removal, and both normal/reduced-motion exits using actual Drei state.
+- `npm run lint` exits successfully with an existing Fast Refresh export warning in `src/components/ui/button.tsx`.
+- Only Three exceeds 500 kB. Kept Vite's warning: `chunkSizeWarningLimit` is global, so raising it would also hide oversized non-Three chunks.
+- Integration: boss mounts `<LoadingScreen />` in App outside Canvas; App is outside this worker's allowed files. Until an asset completes loading, initial inactive/0% remains visible per the requested completion condition; handle no-assets/errors in integration if needed.
+- Not checked: browser visual appearance or real GLB/HDR network loading. No git commits, pushes, or merges performed; six proposed steps recorded in the ledger.
