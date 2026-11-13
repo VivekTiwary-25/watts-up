@@ -101,67 +101,98 @@ export interface Anchor {
   model?: string
 }
 
-/** Appliances that appear once. `light` is in LIGHT_ANCHORS (one per room). */
+/**
+ * Inside faces of the walls things are mounted on or stand against (centre line ± half thickness).
+ * Anchors are placed so their fitted box touches these faces at most, never pokes through.
+ */
+const EAST_FACE = FLOOR.width / 2 - WALL.thickness / 2 // 5.925
+const WEST_FACE = -FLOOR.width / 2 + WALL.thickness / 2 // -5.925
+const BACK_FACE = -FLOOR.depth / 2 + WALL.thickness / 2 // -4.925
+
+/** Turns an appliance's front (local +z) to face -x (east wall) or +x (west wall). */
+const FACE_WEST = -Math.PI / 2
+const FACE_EAST = Math.PI / 2
+
+/**
+ * Appliances that appear once (positions from coord/tasks/ROOM-PLAN.md). `light` is in
+ * LIGHT_ANCHORS. `size` is the GLB's fitted real-world box in the anchor's own frame
+ * (x = width, y = height, z = depth), so effects, wires and halos line up with the model.
+ */
 export const ANCHORS: Anchor[] = [
-  // On the living↔bedroom wall, screen facing +z: every camera looks at it from the front.
-  // (Against the front wall it faced away and the wall hid it from overview and room view.)
-  { id: 'tv', room: 'living', position: [-3.5, 0.85, 0.15], size: [1.4, 0.8, 0.12] },
-  { id: 'fan', room: 'living', position: [-2.5, 2.35, 2.5], size: [1.2, 0.12, 1.2] },
+  // stands on the living-room media console (top y = 0.5), screen facing +z
+  { id: 'tv', room: 'living', position: [-3.0, 0.86, 0.35], size: [1.2, 0.716, 0.199] },
+  { id: 'fan', room: 'living', position: [-3.0, 2.35, 2.5], size: [1.4, 0.494, 1.4] },
   {
     id: 'fridge',
     room: 'kitchen',
-    position: [5.45, 0.9, 0.7],
-    size: [0.8, 1.8, 0.75],
-    rotationY: -Math.PI / 2,
+    // 0.968 deep: centre x kept 0.484 off the east wall face
+    position: [5.44, 0.9, 0.66],
+    size: [1.137, 1.8, 0.968],
+    rotationY: FACE_WEST,
   },
   {
     id: 'stove',
     room: 'kitchen',
-    position: [5.5, 0.45, 3.2],
-    size: [0.6, 0.9, 0.6],
-    rotationY: -Math.PI / 2,
+    // in the counter gap z 2.0..2.9; top at y = 0.9
+    position: [EAST_FACE - 0.455, 0.45, 2.45],
+    size: [0.9, 0.9, 0.9],
+    rotationY: FACE_WEST,
   },
   {
     id: 'microwave',
     room: 'kitchen',
-    position: [5.5, 1.1, 2.3],
-    size: [0.5, 0.28, 0.36],
-    rotationY: -Math.PI / 2,
+    // on the counter top (y = 0.9)
+    position: [5.65, 0.9 + 0.245 / 2 + 0.005, 3.7],
+    size: [0.5, 0.245, 0.347],
+    rotationY: FACE_WEST,
   },
-  { id: 'router', room: 'living', position: [-2.2, 0.9, 0.3], size: [0.25, 0.18, 0.16] },
-  { id: 'ac', room: 'bedroom', position: [-2, 2.15, -4.75], size: [1.0, 0.3, 0.25] },
+  {
+    id: 'router',
+    room: 'living',
+    // on the west-wall shelf (top y = 1.1), facing into the room
+    position: [WEST_FACE + 0.181 / 2 + 0.005, 1.1 + 0.185 / 2, 1.2],
+    size: [0.25, 0.185, 0.181],
+    rotationY: FACE_EAST,
+  },
+  {
+    id: 'ac',
+    room: 'bedroom',
+    // high on the back wall above the bed
+    position: [-3.0, 2.15, BACK_FACE + 0.25 / 2 + 0.005],
+    size: [1.0, 0.32, 0.25],
+  },
   {
     id: 'washer',
     room: 'bathroom',
-    // far enough from the kitchen↔bathroom wall that the overview camera sees over it
-    position: [5.4, 0.45, -3.0],
-    size: [0.7, 0.9, 0.65],
-    rotationY: -Math.PI / 2,
+    position: [5.45, 0.43, -3.0],
+    size: [0.62, 0.85, 0.66],
+    rotationY: FACE_WEST,
   },
-  { id: 'geyser', room: 'bathroom', position: [4, 1.9, -4.7], size: [0.45, 0.7, 0.4] },
+  {
+    id: 'geyser',
+    room: 'bathroom',
+    // on the back wall
+    position: [4.6, 1.9, BACK_FACE + 0.391 / 2 + 0.005],
+    size: [0.391, 0.6, 0.391],
+  },
 ]
 
-/**
- * Tube light: 1.2 m along its local x, turned to run along the east (x = 6) wall facing -x.
- * The east walls are seen by the overview camera and by the kitchen/bathroom room shots
- * (the back walls sit above the top edge of the room shots).
- */
-const TUBE: Vec3 = [1.2, 0.06, 0.06]
-const TUBE_X = FLOOR.width / 2 - WALL.thickness / 2 - TUBE[2] / 2 - 0.01
+/** Tube light: 1.2 m along its local x, turned to run along the east (x = 6) wall facing -x. */
+const TUBE: Vec3 = [1.2, 0.029, 0.032]
+const TUBE_X = 5.885
 const TUBE_Y = 2.25
 
 /**
  * One light fixture per room. Living: chandelier (off-centre, the ceiling fan owns the middle).
- * Bedroom: pendant ceiling lamp. Kitchen and bathroom: a tube light high on the east wall,
- * past the stove (kitchen) and the washer (bathroom).
+ * Bedroom: pendant ceiling lamp. Kitchen and bathroom: a tube light high on the east wall.
  */
 export const LIGHT_ANCHORS: Anchor[] = [
   {
     id: 'light',
     room: 'living',
     model: 'chandelier.glb',
-    position: [ROOMS.living.center[0] + 2.2, WALL.height - 0.43, ROOMS.living.center[2] - 1.2],
-    size: [0.8, 0.86, 0.88], // chandelier.glb at 0.8 m wide
+    position: [-0.6, 2.17, 1.4],
+    size: [0.8, 0.855, 0.874], // chandelier.glb at 0.8 m wide
   },
   {
     id: 'light',
@@ -169,22 +200,22 @@ export const LIGHT_ANCHORS: Anchor[] = [
     model: 'tubelight.glb',
     position: [TUBE_X, TUBE_Y, 4.2],
     size: TUBE,
-    rotationY: -Math.PI / 2,
+    rotationY: FACE_WEST,
   },
   {
     id: 'light',
     room: 'bedroom',
     model: 'light.glb',
-    position: [ROOMS.bedroom.center[0], WALL.height - 0.5, ROOMS.bedroom.center[2]],
-    size: [0.45, 1, 0.45], // light.glb at 0.45 m wide is ~0.99 m tall
+    position: [-4.6, 2.1, -2.2],
+    size: [0.45, 0.992, 0.45], // light.glb at 0.45 m wide
   },
   {
     id: 'light',
     room: 'bathroom',
     model: 'tubelight.glb',
-    position: [TUBE_X, TUBE_Y, -4.2],
+    position: [TUBE_X, TUBE_Y, -1.2],
     size: TUBE,
-    rotationY: -Math.PI / 2,
+    rotationY: FACE_WEST,
   },
 ]
 
