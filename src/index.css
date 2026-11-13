@@ -1,0 +1,102 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  color-scheme: dark;
+  --background: #0b1020;
+  --foreground: #edf0f7;
+  --card: #141b2d;
+  --card-foreground: var(--foreground);
+  --popover: #182033;
+  --popover-foreground: var(--foreground);
+  --primary: #cbd5e1;
+  --primary-foreground: #0b1020;
+  --secondary: #263044;
+  --secondary-foreground: var(--foreground);
+  --muted: #1c2538;
+  --muted-foreground: #a6b0c3;
+  --accent: #303d53;
+  --accent-foreground: var(--foreground);
+  --destructive: #ff8b8b;
+  --border: #ffffff1a;
+  --input: #ffffff26;
+  --ring: #a8bbd4;
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    margin: 0;
+    min-width: 320px;
+  }
+
+  #root {
+    min-height: 100svh;
+  }
+}
+
+@utility glass {
+  background: #141b2dcc;
+  border: 1px solid #ffffff1a;
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 #ffffff0f, 0 12px 32px #00000033;
+}
+
+@utility clay {
+  background: #263044;
+  color: var(--foreground);
+  border: 1px solid #ffffff1a;
+  border-radius: var(--radius);
+  box-shadow: inset 0 2px 2px #ffffff14, inset 0 -2px 3px #00000033,
+    0 5px 12px #0000004d;
+  transition: transform 150ms, box-shadow 150ms;
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px #0000004d, 0 1px 3px #00000033;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
