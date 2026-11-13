@@ -2,25 +2,10 @@ import { Component, Suspense, useEffect, useMemo, useState, type ReactNode } fro
 import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { Select } from '@react-three/postprocessing'
-import { ApplianceBox, useHighlighted } from './ApplianceBox'
+import { ApplianceBox } from './ApplianceBox'
+import { glbExists, modelUrl } from './glb'
 import type { Anchor } from './layout'
-import { useApplianceInteraction } from './useApplianceInteraction'
-
-/** Model file per appliance. Contract: Appliance.modelFile; convention is `<id>.glb`. */
-export const modelUrl = (id: Anchor['id']) => `/models/${id}.glb`
-
-// Vite serves index.html (200, text/html) for missing files — treat that as missing.
-const probes = new Map<string, Promise<boolean>>()
-export function glbExists(url: string): Promise<boolean> {
-  let p = probes.get(url)
-  if (!p) {
-    p = fetch(url, { method: 'HEAD' })
-      .then((res) => res.ok && !(res.headers.get('content-type') ?? '').includes('text/html'))
-      .catch(() => false)
-    probes.set(url, p)
-  }
-  return p
-}
+import { useApplianceInteraction, useHighlighted } from './useApplianceInteraction'
 
 class ModelBoundary extends Component<{ url: string; fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
   state = { failed: false }

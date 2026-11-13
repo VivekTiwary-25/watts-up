@@ -2,6 +2,11 @@ import { useMemo, useRef } from 'react'
 import type { ThreeEvent } from '@react-three/fiber'
 import { useHouse, type ApplianceId } from '@/store/useHouse'
 
+/** True while this appliance is hovered or selected (drives the outline). */
+export function useHighlighted(id: ApplianceId) {
+  return useHouse((s) => s.hovered === id || s.selected === id)
+}
+
 /** Pointer handlers shared by placeholder boxes and GLB models. */
 export function useApplianceInteraction(id: ApplianceId) {
   const pointerType = useRef<string>('mouse')

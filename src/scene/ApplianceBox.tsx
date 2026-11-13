@@ -1,16 +1,12 @@
 import { Select } from '@react-three/postprocessing'
 import { isPowered, useHouse } from '@/store/useHouse'
 import type { Anchor } from './layout'
-import { useApplianceInteraction } from './useApplianceInteraction'
+import { useApplianceInteraction, useHighlighted } from './useApplianceInteraction'
 
 /** Emissive tint when running. Lights are warm, the rest cool. */
 const ON_TINT: Record<Anchor['id'], string> = {
   fan: '#5fd4ff', ac: '#7fe0ff', fridge: '#8cf5d2', tv: '#9fd8ff',
   light: '#ffd27a', washer: '#7fc8ff', geyser: '#ff9a6a', microwave: '#ffc070',
-}
-
-export function useHighlighted(id: Anchor['id']) {
-  return useHouse((s) => s.hovered === id || s.selected === id)
 }
 
 /** Grey placeholder box for an appliance; full hover/click behaviour. */
