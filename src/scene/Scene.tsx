@@ -1,9 +1,10 @@
-import { EffectComposer, Outline, Selection } from '@react-three/postprocessing'
+import { Selection } from '@react-three/postprocessing'
 import { ApplianceModel } from './ApplianceModel'
 import { CameraRig } from './CameraRig'
 import { House } from './House'
 import { Effects } from './effects/Effects'
 import { ALL_ANCHORS, METER } from './layout'
+import { PostFX } from './PostFX'
 
 function Meter() {
   return (
@@ -29,9 +30,8 @@ export function Scene() {
         {ALL_ANCHORS.map((a) => (
           <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
         ))}
-        <EffectComposer autoClear={false} multisampling={4}>
-          <Outline blur edgeStrength={6} visibleEdgeColor={0x7fe8ff} hiddenEdgeColor={0x1b4a5a} xRay={false} />
-        </EffectComposer>
+        {/* the single EffectComposer: AO, bloom, tone map, outline, vignette */}
+        <PostFX />
       </Selection>
 
       <CameraRig />
