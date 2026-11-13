@@ -87,6 +87,9 @@ describe('bill', () => {
     const bill = computeBill(on, { ...hours, fan: 0, fridge: 0, tv: 0, light: 0 })
     expect(bill.total).toBe(100)
     expect(bill.items.every((item) => item.share === 0 && item.cost === 0)).toBe(true)
+    expect(bill.tip).toBe(
+      `Your appliances are on but set to 0 hours. Your bill is just the ${formatINR(TARIFF.fixedCharge)} fixed charge.`,
+    )
   })
 
   it('formats rupees with Indian grouping and optional decimals', () => {

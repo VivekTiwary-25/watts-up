@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { create } from 'zustand'
 import { APPLIANCES, type ApplianceId, type RoomId } from '../data/appliances'
-import { DEFAULT_TARGET_BILL, TARGET_RANGE } from '../data/config'
+import { DEFAULT_TARGET_BILL, HOURS, TARGET_RANGE } from '../data/config'
 import { computeBill, type BillResult } from '../lib/bill'
 import { isValidSelection, togglePick } from '../lib/powercut'
 
@@ -34,6 +34,7 @@ export interface HouseState {
   startPowerCut(): void
   setPowerCutPhase(p: PowerCutPhase): void
   pick(id: ApplianceId): void
+  retryPicks(): void
   confirmPicks(): boolean
   restorePower(): void
   toggleMute(): void
@@ -68,7 +69,7 @@ export const useHouse = create<HouseState>((set, get) => ({
   setOn: (id, v) => set((s) => ({ on: { ...s.on, [id]: v } })),
   setHours: (id, h) => {
     if (Number.isFinite(h))
-      set((s) => ({ hours: { ...s.hours, [id]: Math.max(0, Math.min(24, h)) } }))
+      set((s) => ({ hours: { ...s.hours, [id]: Math.max(HOURS.min, Math.min(HOURS.max, h)) } }))
   },
   setTarget: (n) => {
     if (Number.isFinite(n))
@@ -86,13 +87,18 @@ export const useHouse = create<HouseState>((set, get) => ({
   setPowerCutPhase: (powerCut) => set({ powerCut }),
   pick: (id) =>
     set((s) => {
+      if (s.powerCut !== 'choosing') return s
       const result = togglePick(s.picks, id)
       return {
         picks: result.picks,
         pickError: result.blocked ? { message: result.reason!, at: Date.now() } : null,
       }
     }),
+  retryPicks: () => {
+    if (get().powerCut === 'result') set({ powerCut: 'choosing', pickError: null })
+  },
   confirmPicks: () => {
+    if (get().powerCut !== 'choosing') return false
     if (!isValidSelection(get().picks)) return false
     set({ powerCut: 'result', pickError: null })
     return true
