@@ -67,7 +67,7 @@ export function SceneLights() {
   )
 }
 
-const panelGeo = new THREE.PlaneGeometry(0.46, 0.46)
+const panelGeo = new THREE.CircleGeometry(0.22, 32)
 
 /**
  * One warm point light + glowing ceiling panel per room. Always mounted (a changing light count
