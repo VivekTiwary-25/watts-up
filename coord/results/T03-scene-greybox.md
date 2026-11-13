@@ -1,0 +1,13 @@
+# T03 — 3D grey-box scene · result
+
+**Built:** a dollhouse with no roof on a 12×10 plan with 4 rooms (living, kitchen, bedroom, bathroom). It has 2.6 m walls with door gaps and placeholder boxes for all 8 appliances (`light` has one box in each room). Hover/select draws a cyan postprocessing `Outline` (Selection/Select), following R01 §1 instead of the task's drei `<Outlines>`. Clicking calls `toggle`, or `pick` while `powerCut !== 'off'`, and then `select`. On touch, the first tap selects and the second tap toggles. Drags (delta > 6px) are ignored. A powered box gets an emissive tint; an unpowered one is dull (`isPowered`). `CameraControls.setLookAt` flies between the overview and each room. The polar angle is clamped above the floor, and reduced motion makes the move instant. Clicking a room's floor in overview calls `goToRoom`, and Esc calls `backToOverview`. Walls block clicks. When `light` is powered, each room gets a warm pointLight. The meter box sits on the outside of the east wall.
+
+**Files:** `src/scene/{layout.ts, layout.test.ts, House.tsx, ApplianceBox.tsx, ApplianceModel.tsx, glb.ts, useApplianceInteraction.ts, CameraRig.tsx, Scene.tsx}`, `src/App.tsx` (the Canvas now mounts `<Scene />` with shadows), `src/store/useHouse.ts`.
+
+**⚠ `src/store/useHouse.ts` is a TEMPORARY STUB.** At merge, take T02's file. Types (`ApplianceId`, `RoomId`) are defined inline in the stub because `src/data/` was empty. The scene imports those types from `@/store/useHouse`, so either T02's store re-exports them or the merger changes the scene imports to `@/data/appliances` (4 files: layout.ts, glb.ts, useApplianceInteraction.ts, ApplianceBox via Anchor).
+
+**Models:** `ApplianceModel` HEAD-probes `/models/<id>.glb` and treats text/html as missing. If the file exists it loads it with `useGLTF` inside an ErrorBoundary + Suspense; the fallback is the box, and the boundary clears the cache on error. The model is cloned and scaled to fit its anchor box. The URL is `<id>.glb` and does not read `Appliance.modelFile` yet (`glb.ts:modelUrl`), so switch it to `APPLIANCE_BY_ID[id].modelFile` after merge.
+
+**Verify:** `npm test` (6 pass), `npm run build` (pass), `npm run lint` (no scene warnings). Then `npm run dev`: hover a box to see the outline, click to toggle the glow, click a room floor to fly in, press Esc to go back.
+
+**Open issues:** the build passed, but I only checked the browser at the code level and never looked at the scene running. Camera framing and light intensities may need tuning. Canvas uses `frameloop="demand"`; T06 animations (fan spin) will need `"always"` or `invalidate()`. Bundle is 1.36 MB (code-split later). The scene starts at `view: 'overview'`, and the intro shot belongs to T07.
