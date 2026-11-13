@@ -160,8 +160,8 @@ export const LIGHT_ANCHORS: Anchor[] = [
     id: 'light',
     room: 'living',
     model: 'chandelier.glb',
-    position: [ROOMS.living.center[0] + 2.2, WALL.height - 0.39, ROOMS.living.center[2] - 1.2],
-    size: [0.8, 0.78, 0.8],
+    position: [ROOMS.living.center[0] + 2.2, WALL.height - 0.43, ROOMS.living.center[2] - 1.2],
+    size: [0.8, 0.86, 0.88], // chandelier.glb at 0.8 m wide
   },
   {
     id: 'light',
@@ -175,8 +175,8 @@ export const LIGHT_ANCHORS: Anchor[] = [
     id: 'light',
     room: 'bedroom',
     model: 'light.glb',
-    position: [ROOMS.bedroom.center[0], WALL.height - 0.46, ROOMS.bedroom.center[2]],
-    size: [0.45, 0.92, 0.45],
+    position: [ROOMS.bedroom.center[0], WALL.height - 0.5, ROOMS.bedroom.center[2]],
+    size: [0.45, 1, 0.45], // light.glb at 0.45 m wide is ~0.99 m tall
   },
   {
     id: 'light',
