@@ -44,6 +44,56 @@ export function Fridge() {
   )
 }
 
+const stove = anchorOf('stove')
+/** Hob ring (flat annulus laid on the stove top), radii in metres. */
+const ringGeo = new THREE.RingGeometry(0.06, 0.1, 40)
+const STOVE_GLOW = new THREE.Color(VISUALS.stove.glow)
+const STOVE_DARK = new THREE.Color('#120a08')
+/** Plan offsets of the two front hob rings, as fractions of the stove's [width, depth]. */
+const RINGS: [number, number][] = [
+  [-0.22, 0.18],
+  [0.22, 0.18],
+]
+/** Two front hob rings glow orange-red while the stove runs, with a slow heat shimmer. */
+export function Stove() {
+  const level = useLevel('stove')
+  const mat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: STOVE_DARK,
+        toneMapped: false,
+        side: THREE.DoubleSide,
+      }),
+    [],
+  )
+  useDispose(mat)
+  useFrame(({ clock }) => {
+    const shimmer = MOTION.reduce ? 1 : 0.9 + 0.1 * Math.sin(clock.elapsedTime * 3.1)
+    mat.color
+      .copy(STOVE_DARK)
+      .lerp(STOVE_GLOW, Math.min(1, level.v * shimmer))
+      .multiplyScalar(1 + (VISUALS.stove.intensity - 1) * level.v)
+  })
+  const [w, h, d] = stove.size
+  return (
+    <group position={stove.position} rotation-y={stove.rotationY ?? 0}>
+      {RINGS.map(([fx, fz]) => (
+        <mesh
+          key={fx}
+          geometry={ringGeo}
+          material={mat}
+          position={[fx * w, h / 2 + 0.012, fz * d]}
+          rotation-x={-Math.PI / 2}
+          raycast={() => null}
+        />
+      ))}
+      <group position={[0, 0, d / 2 + 0.006]}>
+        <StatusLed level={level} position={[w / 2 - 0.06, h / 2 - 0.05, 0]} />
+      </group>
+    </group>
+  )
+}
+
 const mw = anchorOf('microwave')
 const windowGeo = new THREE.PlaneGeometry(mw.size[0] * 0.58, mw.size[1] * 0.66)
 const MW_GLOW = new THREE.Color(VISUALS.microwave.glow)
@@ -68,6 +118,42 @@ export function Microwave() {
         raycast={() => null}
       />
       <StatusLed level={level} position={[mw.size[0] / 2 - 0.07, mw.size[1] / 2 - 0.07, 0]} />
+    </Front>
+  )
+}
+
+const router = anchorOf('router')
+const routerLedGeo = new THREE.SphereGeometry(0.008, 8, 6)
+const ROUTER_LEDS = [-0.3, -0.1, 0.1, 0.3]
+/** Row of activity LEDs on the router's front edge; each blinks on its own rhythm while online. */
+export function Router() {
+  const level = useLevel('router')
+  const mats = useMemo(
+    () => ROUTER_LEDS.map(() => new THREE.MeshBasicMaterial({ color: LED.off, toneMapped: false })),
+    [],
+  )
+  useDispose(...mats)
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime * VISUALS.router.blinkHz
+    mats.forEach((mat, i) => {
+      // the first LED is the steady power light; the rest flicker like traffic
+      const blink =
+        i === 0 || MOTION.reduce ? 1 : Math.sin(t * (1 + i * 0.37) + i * 1.7) > -0.2 ? 1 : 0.25
+      mat.color.copy(LED_OFF).lerp(LED_ON, level.v * blink)
+    })
+  })
+  const [w, h] = router.size
+  return (
+    <Front anchor={router}>
+      {ROUTER_LEDS.map((k, i) => (
+        <mesh
+          key={k}
+          geometry={routerLedGeo}
+          material={mats[i]}
+          position={[k * w, -h / 2 + h * 0.15, 0]}
+          raycast={() => null}
+        />
+      ))}
     </Front>
   )
 }

@@ -113,12 +113,20 @@ export const ANCHORS: Anchor[] = [
     rotationY: -Math.PI / 2,
   },
   {
-    id: 'microwave',
+    id: 'stove',
     room: 'kitchen',
-    position: [5.5, 1.1, 3.2],
-    size: [0.55, 0.32, 0.4],
+    position: [5.5, 0.45, 3.2],
+    size: [0.6, 0.9, 0.6],
     rotationY: -Math.PI / 2,
   },
+  {
+    id: 'microwave',
+    room: 'kitchen',
+    position: [5.5, 1.1, 2.3],
+    size: [0.5, 0.28, 0.36],
+    rotationY: -Math.PI / 2,
+  },
+  { id: 'router', room: 'living', position: [-2.2, 0.9, 0.3], size: [0.25, 0.18, 0.16] },
   { id: 'ac', room: 'bedroom', position: [-2, 2.15, -4.75], size: [1.0, 0.3, 0.25] },
   {
     id: 'washer',

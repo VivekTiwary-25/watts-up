@@ -24,18 +24,18 @@ describe('UI behavior', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /appliances/i }))
     const acSwitch = screen.getByRole('switch', { name: 'Toggle Split AC' })
-    expect(screen.getByText('₹798')).toBeTruthy()
+    expect(screen.getByText('₹850')).toBeTruthy()
     fireEvent.click(acSwitch)
-    expect(await screen.findByText('₹2,858')).toBeTruthy()
+    expect(await screen.findByText('₹2,927')).toBeTruthy()
     fireEvent.click(acSwitch)
-    expect(await screen.findByText('₹798')).toBeTruthy()
+    expect(await screen.findByText('₹850')).toBeTruthy()
   })
 
   it('shows monthly units, the tip, and one share bar per active appliance', () => {
     const { container } = render(<BillPanel />)
     expect(screen.getByText(/kWh \/ month/)).toBeTruthy()
     expect(screen.getByText(/is .* of your bill\. Running it/)).toBeTruthy()
-    expect(container.querySelectorAll('.bg-teal-300')).toHaveLength(4)
+    expect(container.querySelectorAll('.bg-teal-300')).toHaveLength(5)
   })
 
   it('reports whether the bill is over or under the target', () => {
@@ -135,15 +135,15 @@ describe('UI behavior', () => {
     expect(status.getAttribute('aria-live')).toBe('polite')
     expect(status.getAttribute('aria-atomic')).toBe('true')
     act(() => vi.advanceTimersByTime(500))
-    expect(status.textContent).toBe('Monthly estimate ₹798')
+    expect(status.textContent).toBe('Monthly estimate ₹850')
     act(() => useHouse.getState().toggle('ac'))
     act(() => vi.advanceTimersByTime(400))
-    expect(status.textContent).toBe('Monthly estimate ₹798')
+    expect(status.textContent).toBe('Monthly estimate ₹850')
     act(() => useHouse.getState().setHours('ac', 1))
     act(() => vi.advanceTimersByTime(499))
-    expect(status.textContent).toBe('Monthly estimate ₹798')
+    expect(status.textContent).toBe('Monthly estimate ₹850')
     act(() => vi.advanceTimersByTime(1))
-    expect(status.textContent).toBe('Monthly estimate ₹1,068')
+    expect(status.textContent).toBe('Monthly estimate ₹1,127')
   })
 
   it('announces the target state after the adjustment settles', () => {
@@ -152,12 +152,12 @@ describe('UI behavior', () => {
     const status = screen.getByRole('status')
     expect(status.getAttribute('aria-live')).toBe('polite')
     act(() => vi.advanceTimersByTime(500))
-    expect(status.textContent).toBe('₹702 under target')
+    expect(status.textContent).toBe('₹650 under target')
     act(() => useHouse.getState().setTarget(200))
     act(() => vi.advanceTimersByTime(499))
-    expect(status.textContent).toBe('₹702 under target')
+    expect(status.textContent).toBe('₹650 under target')
     act(() => vi.advanceTimersByTime(1))
-    expect(status.textContent).toBe('₹598 over target')
+    expect(status.textContent).toBe('₹650 over target')
   })
 
   it('expands the compact bill and counts to the final number', async () => {

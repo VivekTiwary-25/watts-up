@@ -32,18 +32,18 @@ describe('bill', () => {
 
   it('calculates the default bill and proportional sorted costs', () => {
     const bill = computeBill(on, hours)
-    expect(bill.totalUnits).toBeCloseTo(149.7)
-    expect(bill.total).toBeCloseTo(798.2)
+    expect(bill.totalUnits).toBeCloseTo(158.34)
+    expect(bill.total).toBeCloseTo(850.04)
     expect(bill.items.reduce((sum, item) => sum + item.share, 0)).toBeCloseTo(1)
     expect(bill.items.reduce((sum, item) => sum + item.cost, 0)).toBeCloseTo(bill.energyCharge)
-    expect(bill.items.map((item) => item.id)).toEqual(['fridge', 'fan', 'tv', 'light'])
+    expect(bill.items.map((item) => item.id)).toEqual(['fridge', 'fan', 'tv', 'router', 'light'])
     for (const item of bill.items) {
       expect(item.cost).toBeCloseTo((bill.energyCharge * item.units) / bill.totalUnits)
     }
   })
 
   it('charges only the fixed charge when everything is off', () => {
-    const allOff = { ...on, fan: false, fridge: false, tv: false, light: false }
+    const allOff = { ...on, fan: false, fridge: false, tv: false, light: false, router: false }
     const bill = computeBill(allOff, hours)
     expect(bill.total).toBe(100)
     expect(bill.items).toEqual([])
@@ -53,7 +53,15 @@ describe('bill', () => {
   it('gives a top-share tip with the actual slab saving, including short usage', () => {
     for (const acHours of [6, 1]) {
       const currentHours = { ...hours, ac: acHours }
-      const currentOn = { ...on, ac: true, fridge: false, fan: false, tv: false, light: false }
+      const currentOn = {
+        ...on,
+        ac: true,
+        fridge: false,
+        fan: false,
+        tv: false,
+        light: false,
+        router: false,
+      }
       const bill = computeBill(currentOn, currentHours)
       const reduced = computeBill(currentOn, {
         ...currentHours,
@@ -84,7 +92,7 @@ describe('bill', () => {
   })
 
   it('keeps zero-hour enabled appliances finite', () => {
-    const bill = computeBill(on, { ...hours, fan: 0, fridge: 0, tv: 0, light: 0 })
+    const bill = computeBill(on, { ...hours, fan: 0, fridge: 0, tv: 0, light: 0, router: 0 })
     expect(bill.total).toBe(100)
     expect(bill.items.every((item) => item.share === 0 && item.cost === 0)).toBe(true)
     expect(bill.tip).toBe(

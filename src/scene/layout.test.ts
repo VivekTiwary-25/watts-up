@@ -21,7 +21,7 @@ describe('layout', () => {
   })
 
   it('every non-light appliance appears once, inside its room and under the wall height', () => {
-    expect(new Set(ANCHORS.map((a) => a.id)).size).toBe(7)
+    expect(new Set(ANCHORS.map((a) => a.id)).size).toBe(9)
     for (const a of ALL_ANCHORS) {
       expect(inside(ROOMS[a.room], a.position[0], a.position[2]), a.id).toBe(true)
       expect(a.position[1] + a.size[1] / 2).toBeLessThanOrEqual(WALL.height)

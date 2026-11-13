@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { AccumulativeShadows, RandomizedLight, Stars, useProgress } from '@react-three/drei'
@@ -7,9 +7,7 @@ import { QUALITY } from '@/data/config'
 import { ApplianceModel } from './ApplianceModel'
 import { CameraRig } from './CameraRig'
 import { Environment } from './Environment'
-import { glbExists } from './glb'
 import { House } from './House'
-import { HouseModel } from './HouseModel'
 import { Effects } from './effects/Effects'
 import { MAINS } from './effects/mains'
 import { lerp } from './effects/useLevel'
@@ -137,15 +135,6 @@ function GroundShadowBake({
 
 /** Everything inside the Canvas. */
 export function Scene() {
-  // hide the grey-box shell once house.glb is confirmed present (HouseModel renders it)
-  const [houseLoaded, setHouseLoaded] = useState(false)
-  useEffect(() => {
-    let alive = true
-    glbExists('/models/house.glb').then((ok) => alive && setHouseLoaded(ok))
-    return () => {
-      alive = false
-    }
-  }, [])
 
   return (
     <>
@@ -156,8 +145,8 @@ export function Scene() {
       <RimLight />
 
       <Selection>
-        <House hideShell={houseLoaded} />
-        <HouseModel />
+        {/* house.glb (the villa) is the intro exterior only; the rooms stay the clay shell */}
+        <House />
         <Meter />
         {ALL_ANCHORS.map((a) => (
           <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
