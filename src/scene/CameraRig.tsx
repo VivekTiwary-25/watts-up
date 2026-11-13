@@ -3,9 +3,8 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { CameraControls } from '@react-three/drei'
 import { useHouse } from '@/store/useHouse'
 import { MOTION } from './effects/mains'
-import { INTRO_CAMERA, ROOMS, fitShot, overviewShot } from './layout'
-
-const I = INTRO_CAMERA
+import { VILLA_SHOT, villaOrbit } from './IntroVilla'
+import { ROOMS, fitShot, overviewShot } from './layout'
 
 /** Owns the camera. Flies to the overview or the focused room whenever `view`/`focusRoom` change. */
 export function CameraRig() {
@@ -22,7 +21,7 @@ export function CameraRig() {
     if (!c) return
     if (view === 'intro') {
       introTime.current = 0
-      void c.setLookAt(...I.start.cameraPos, ...I.start.cameraTarget, false)
+      void c.setLookAt(...villaOrbit(0, MOTION.reduce), ...VILLA_SHOT.target, false)
       first.current = false
       return
     }
@@ -39,13 +38,9 @@ export function CameraRig() {
     const c = ref.current
     // MOTION.reduce is a cached media-query flag: no matchMedia() call per frame
     if (!c || view !== 'intro' || MOTION.reduce) return
+    // slow orbit around the villa exterior
     introTime.current += delta
-    const phase = (introTime.current % 40) / 20
-    const t = phase <= 1 ? phase : 2 - phase
-    const x = I.start.cameraPos[0] + (I.end.cameraPos[0] - I.start.cameraPos[0]) * t
-    const [, y, z] = I.start.cameraPos
-    const [tx, ty, tz] = I.start.cameraTarget
-    void c.setLookAt(x, y, z, tx, ty, tz, false)
+    void c.setLookAt(...villaOrbit(introTime.current), ...VILLA_SHOT.target, false)
   })
 
   // Esc → back to overview (UI back button lives in T04).
@@ -67,7 +62,7 @@ export function CameraRig() {
       minPolarAngle={0.15}
       maxPolarAngle={Math.PI / 2 - 0.08}
       minDistance={3}
-      maxDistance={28}
+      maxDistance={view === 'intro' ? 90 : 28}
     />
   )
 }
