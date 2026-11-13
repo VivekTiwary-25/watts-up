@@ -7,6 +7,7 @@ import { TopBar } from './TopBar'
 import { ApplianceList } from './ApplianceList'
 import { IntroOverlay } from './IntroOverlay'
 import { SoundController } from './SoundController'
+import { PowerCutOverlay } from './powercut'
 
 export function HUD() {
   const intro = useHouse((s) => s.view === 'intro')
@@ -41,6 +42,7 @@ export function HUD() {
           </motion.div>
         )}
       </AnimatePresence>
+      {!intro && <PowerCutOverlay />}
     </div>
   )
 }
