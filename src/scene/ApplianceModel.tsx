@@ -1,8 +1,10 @@
 import { Component, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
+import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { Select } from '@react-three/postprocessing'
 import { ApplianceBox } from './ApplianceBox'
+import { useLevel } from './effects/useLevel'
 import { glbExists, modelUrl } from './glb'
 import type { Anchor, Vec3 } from './layout'
 import { useApplianceInteraction, useHighlighted } from './useApplianceInteraction'
@@ -65,30 +67,110 @@ function fitScale(file: string, dims: THREE.Vector3, size: Vec3): number {
   return Math.min(sx / (dims.x || 1), sy / (dims.y || 1), sz / (dims.z || 1))
 }
 
+// ---- emissive glow ---------------------------------------------------------
+type Emissive = THREE.MeshStandardMaterial
+
+/** A set of cloned materials whose emissiveIntensity follows the appliance's running level. */
+interface Glow {
+  mats: Emissive[]
+  intensity: (level: number) => number
+}
+
+/** Light fixtures: glow colour and the materials that glow (plus any authored as emissive). */
+const FIXTURE_GLOW: Record<string, { color: string; match: RegExp }> = {
+  'chandelier.glb': { color: '#ffc98a', match: /lamp/i },
+  'light.glb': { color: '#ffe2b0', match: /globe|glass/i },
+  'tubelight.glb': { color: '#f2f7ff', match: /tube|bulb/i },
+}
+const FIXTURE_FALLBACK = '#ffe2b0'
+const LIGHT_GLOW_MAX = 2.5
+
+const isEmissive = (m: THREE.Material): m is Emissive => 'emissive' in m
+
+/**
+ * Clone (once per model instance) the emissive-capable materials that `pick` selects, swap the
+ * clones onto the meshes and return them. Materials are shared through the GLTF cache and inside
+ * a model (the geyser lights share one palette material), so the originals are never touched.
+ */
+function cloneMaterials(
+  root: THREE.Object3D,
+  pick: (mesh: THREE.Mesh, mat: Emissive) => boolean,
+  color: string,
+): Emissive[] {
+  const clones = new Map<THREE.Material, Emissive>()
+  root.traverse((o) => {
+    const mesh = o as THREE.Mesh
+    if (!mesh.isMesh) return
+    const swap = (mat: THREE.Material) => {
+      if (!isEmissive(mat) || !pick(mesh, mat)) return mat
+      let c = clones.get(mat)
+      if (!c) {
+        c = mat.clone()
+        c.emissive.set(color)
+        c.emissiveMap = null // glow evenly, whatever the authored emissive texture
+        c.emissiveIntensity = 0
+        clones.set(mat, c)
+      }
+      return c
+    }
+    mesh.material = Array.isArray(mesh.material) ? mesh.material.map(swap) : swap(mesh.material)
+  })
+  return [...clones.values()]
+}
+
+function glowsFor(anchor: Anchor, file: string, root: THREE.Object3D): Glow[] {
+  if (anchor.id !== 'light') return []
+  const cfg = FIXTURE_GLOW[file]
+  const color = cfg?.color ?? FIXTURE_FALLBACK
+  let mats = cfg
+    ? cloneMaterials(root, (_, m) => cfg.match.test(m.name) || m.emissive.getHex() !== 0, color)
+    : []
+  if (mats.length === 0) mats = cloneMaterials(root, () => true, color)
+  return [{ mats, intensity: (k) => LIGHT_GLOW_MAX * k }]
+}
+
 function Model({ anchor, url }: { anchor: Anchor; url: string }) {
   const { scene } = useGLTF(url)
   const handlers = useApplianceInteraction(anchor.id)
   const highlighted = useHighlighted(anchor.id)
+  const level = useLevel(anchor.id)
 
   // Clone (cache is shared, e.g. 2 tube lights), scale to real-world size, centre on the anchor.
-  const { object, scale, offset, hitSize } = useMemo(() => {
+  const { object, scale, offset, hitSize, glows } = useMemo(() => {
     const object = scene.clone(true)
     object.traverse((o) => {
       if (!(o as THREE.Mesh).isMesh) return
       o.castShadow = true
       o.raycast = noRaycast // the hit box below is the pointer target, not every triangle
     })
+    const file = fileOf(url)
+    const glows = glowsFor(anchor, file, object)
     const box = new THREE.Box3().setFromObject(object)
     const dims = box.getSize(new THREE.Vector3())
-    const scale = fitScale(fileOf(url), dims, anchor.size)
+    const scale = fitScale(file, dims, anchor.size)
     const center = box.getCenter(new THREE.Vector3())
     const offset: Vec3 = [-center.x * scale, -center.y * scale, -center.z * scale]
     const hitSize: Vec3 = [dims.x * scale, dims.y * scale, dims.z * scale]
-    return { object, scale, offset, hitSize }
-  }, [scene, url, anchor.size])
+    return { object, scale, offset, hitSize, glows }
+  }, [scene, url, anchor])
 
   // shadow maps are cached: include the model as soon as it lands
   useEffect(markShadowsDirty, [object])
+
+  // the cloned glow materials belong to this instance
+  useEffect(
+    () => () => {
+      for (const g of glows) for (const m of g.mats) m.dispose()
+    },
+    [glows],
+  )
+
+  useFrame(() => {
+    for (const g of glows) {
+      const k = g.intensity(level.v)
+      for (const m of g.mats) m.emissiveIntensity = k
+    }
+  })
 
   return (
     <Select enabled={highlighted}>

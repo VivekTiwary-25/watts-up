@@ -1,9 +1,9 @@
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 import { VISUALS } from '@/data/config'
-import { LIGHT_ANCHORS } from '../layout'
-import { useDispose } from '../useDispose'
+import { LIGHT_ANCHORS, type Anchor, type Vec3 } from '../layout'
 import { MAINS } from './mains'
 import { lerp, useLevel } from './useLevel'
 
@@ -67,52 +67,82 @@ export function SceneLights() {
   )
 }
 
-const panelGeo = new THREE.CircleGeometry(0.22, 32)
+// RectAreaLight needs its LTC lookup textures registered once before the first render.
+RectAreaLightUniformsLib.init()
+
+/** Wall-mounted tube light: a soft cool rect light instead of a warm point light. */
+const TUBE = { model: 'tubelight.glb', color: '#f2f7ff', intensity: 4, width: 1.2, height: 0.08 }
+const isTube = (a: Anchor) => a.model === TUBE.model
+
+/** Pose of a tube's rect light: just in front of the fixture, facing into the room. */
+function tubePose(a: Anchor): { position: Vec3; quaternion: THREE.Quaternion } {
+  const r = a.rotationY ?? 0
+  // the fixture's local +z points into the room
+  const out = new THREE.Vector3(Math.sin(r), 0, Math.cos(r))
+  const position = new THREE.Vector3(...a.position).addScaledVector(out, a.size[2] / 2 + 0.02)
+  // a light emits along its local -z: aim it into the room and slightly down
+  const target = position
+    .clone()
+    .addScaledVector(out, 2)
+    .setY(position.y - 1)
+  const m = new THREE.Matrix4().lookAt(position, target, new THREE.Vector3(0, 1, 0))
+  return {
+    position: position.toArray() as Vec3,
+    quaternion: new THREE.Quaternion().setFromRotationMatrix(m),
+  }
+}
 
 /**
- * One warm point light + glowing ceiling panel per room. Always mounted (a changing light count
- * would recompile every material); only intensities move.
+ * One light per room fixture: a warm point light under the chandelier / ceiling lamp, a soft rect
+ * light in front of each tube light. The fixtures glow themselves (ApplianceModel). Always
+ * mounted (a changing light count would recompile every material); only intensities move.
  */
 export function RoomLights() {
   const light = useLevel('light')
-  const refs = useRef<(THREE.PointLight | null)[]>([])
-  const panelMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: '#000000', toneMapped: false }),
-    [],
-  )
-  const panelOn = useMemo(() => new THREE.Color(L.panel).multiplyScalar(L.panelIntensity), [])
-  useDispose(panelMat)
+  const points = useRef<(THREE.PointLight | null)[]>([])
+  const rects = useRef<(THREE.RectAreaLight | null)[]>([])
+  const poses = useMemo(() => LIGHT_ANCHORS.map((a) => (isTube(a) ? tubePose(a) : null)), [])
 
   useFrame(() => {
     const k = light.v
-    for (const p of refs.current) if (p) p.intensity = L.warmIntensity * k
-    panelMat.color.setRGB(0.08, 0.09, 0.11).lerp(panelOn, k)
+    for (const p of points.current) if (p) p.intensity = L.warmIntensity * k
+    for (const r of rects.current) if (r) r.intensity = TUBE.intensity * k
   })
 
   return (
     <group name="room-lights">
       {LIGHT_ANCHORS.map((a, i) => {
-        const [x, y, z] = a.position
-        const under = y - a.size[1] / 2 - 0.004
-        return (
-          <group key={a.room}>
-            <pointLight
+        const pose = poses[i]
+        if (pose) {
+          return (
+            <rectAreaLight
+              key={a.room}
               ref={(el) => {
-                refs.current[i] = el
+                rects.current[i] = el
               }}
-              position={[x, y - 0.25, z]}
-              color={L.warm}
+              position={pose.position}
+              quaternion={pose.quaternion}
+              color={TUBE.color}
               intensity={0}
-              distance={L.warmDistance}
-              decay={2}
+              width={TUBE.width}
+              height={TUBE.height}
             />
-            <mesh
-              geometry={panelGeo}
-              material={panelMat}
-              position={[x, under, z]}
-              rotation-x={Math.PI / 2}
-            />
-          </group>
+          )
+        }
+        const [x, y, z] = a.position
+        return (
+          <pointLight
+            key={a.room}
+            ref={(el) => {
+              points.current[i] = el
+            }}
+            // among the bulbs, in the lower part of the fixture
+            position={[x, y - a.size[1] * 0.3, z]}
+            color={L.warm}
+            intensity={0}
+            distance={L.warmDistance}
+            decay={2}
+          />
         )
       })}
     </group>
