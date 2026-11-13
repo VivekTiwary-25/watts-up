@@ -41,12 +41,16 @@ test('confirm stays disabled until exactly three appliances are kept', () => {
     screen.getByRole('heading', { name: 'Inverter backup: choose 3 to keep running.' }).textContent,
   ).toBe('Inverter backup: choose 3 to keep running.')
   expect(screen.getByRole('button', { name: 'Confirm' }).hasAttribute('disabled')).toBe(true)
+  expect(screen.getByText('Picked 2 of 3')).toBeTruthy()
   expect(screen.getByText('225 W').textContent).toContain('225 W')
 
   act(() => {
     useHouse.setState({ picks: ['fan', 'fridge', 'light'] })
   })
-  expect(screen.getByRole('button', { name: 'Confirm' }).hasAttribute('disabled')).toBe(false)
+  expect(
+    screen.getByRole('button', { name: 'Confirm 3 appliances' }).hasAttribute('disabled'),
+  ).toBe(false)
+  expect(screen.getByText('Picked 3 of 3')).toBeTruthy()
   expect(screen.getByText('265 W').textContent).toContain('265 W')
   expect(screen.getByText('5h 26m').textContent).toContain('5h 26m')
 })
@@ -59,7 +63,7 @@ test('clicking a filled slot unpicks it', () => {
   expect(screen.getByRole('button', { name: 'Confirm' }).hasAttribute('disabled')).toBe(true)
 })
 
-test('shows the inverter limit, then clears it', () => {
+test('shows the inverter limit for 3.5 seconds and restarts its timer on a new error', () => {
   vi.useFakeTimers()
   useHouse.setState({
     powerCut: 'choosing',
@@ -69,7 +73,19 @@ test('shows the inverter limit, then clears it', () => {
   render(<PowerCutOverlay />)
   expect(screen.getByRole('alert').textContent).toContain('Inverter can only run 3 appliances')
   act(() => {
-    vi.advanceTimersByTime(2000)
+    vi.advanceTimersByTime(POWER_CUT.messageMs - 500)
+  })
+  act(() => {
+    useHouse.setState({ pickError: { message: 'Inverter can only run 3 appliances', at: 6 } })
+    vi.advanceTimersByTime(500)
+  })
+  expect(screen.getByRole('alert').textContent).toContain('Inverter can only run 3 appliances')
+  act(() => {
+    vi.advanceTimersByTime(POWER_CUT.messageMs - 1)
+  })
+  expect(screen.getByRole('alert')).toBeTruthy()
+  act(() => {
+    vi.advanceTimersByTime(1)
   })
   expect(screen.queryByRole('alert')).toBeNull()
 })
@@ -77,7 +93,7 @@ test('shows the inverter limit, then clears it', () => {
 test('confirm moves a valid selection to the result', () => {
   useHouse.setState({ powerCut: 'choosing', picks: ['ac', 'fridge', 'fan'] })
   render(<PowerCutOverlay />)
-  fireEvent.click(screen.getByRole('button', { name: 'Confirm' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm 3 appliances' }))
   expect(useHouse.getState().powerCut).toBe('result')
   expect(screen.getByText('Yours lasts 4h 36m less').textContent).toBe('Yours lasts 4h 36m less')
   expect(screen.getByText('Checked all 56 combinations.').textContent).toBe(
@@ -85,6 +101,12 @@ test('confirm moves a valid selection to the result', () => {
   )
   expect(screen.getByText('12/12').textContent).toBe('12/12')
   expect(screen.getByText('10/12').textContent).toBe('10/12')
+  expect(screen.getByRole('progressbar', { name: 'Comfort' }).getAttribute('aria-valuenow')).toBe(
+    '12',
+  )
+  expect(
+    screen.getByRole('region', { name: 'Backup result' }).querySelector('.text-emerald-300'),
+  ).toBeTruthy()
 })
 
 test('restore power ends the cut and try again returns to choosing', () => {
