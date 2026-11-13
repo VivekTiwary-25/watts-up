@@ -6,6 +6,16 @@ import { ApplianceBox } from './ApplianceBox'
 import { glbExists, modelUrl } from './glb'
 import type { Anchor } from './layout'
 import { useApplianceInteraction, useHighlighted } from './useApplianceInteraction'
+import { markShadowsDirty } from './useQuality'
+
+const noRaycast = () => null
+
+/**
+ * Invisible pointer target sized to the anchor box (scaled unit cube). material.visible = false
+ * keeps it out of colour, shadow and outline passes while the mesh stays raycastable.
+ */
+const HIT_BOX = new THREE.BoxGeometry(1, 1, 1)
+const HIT_MATERIAL = new THREE.MeshBasicMaterial({ visible: false })
 
 class ModelBoundary extends Component<
   { url: string; fallback: ReactNode; children: ReactNode },
@@ -32,7 +42,9 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
   const { object, scale, offset } = useMemo(() => {
     const object = scene.clone(true)
     object.traverse((o) => {
-      if ((o as THREE.Mesh).isMesh) o.castShadow = true
+      if (!(o as THREE.Mesh).isMesh) return
+      o.castShadow = true
+      o.raycast = noRaycast // the hit box below is the pointer target, not every triangle
     })
     const box = new THREE.Box3().setFromObject(object)
     const dims = box.getSize(new THREE.Vector3())
@@ -47,6 +59,9 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
     return { object, scale, offset }
   }, [scene, anchor.size])
 
+  // shadow maps are cached: include the model as soon as it lands
+  useEffect(markShadowsDirty, [object])
+
   return (
     <Select enabled={highlighted}>
       <group
@@ -56,6 +71,7 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
         {...handlers}
       >
         <primitive object={object} position={offset} scale={scale} />
+        <mesh geometry={HIT_BOX} material={HIT_MATERIAL} scale={anchor.size} />
       </group>
     </Select>
   )
