@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { VISUALS } from '@/data/config'
+import { useDispose } from '../useDispose'
 import { MOTION } from './mains'
 import { anchorOf, useLevel } from './useLevel'
 
@@ -87,6 +88,7 @@ export function Geyser() {
       toneMapped: false,
     })
   }, [])
+  useDispose(mat, mat.map, mat.alphaMap)
 
   useFrame(({ clock }, dt) => {
     mat.opacity = G.opacity * level.v

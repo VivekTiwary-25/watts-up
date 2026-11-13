@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { VISUALS } from '@/data/config'
 import { LIGHT_ANCHORS } from '../layout'
+import { useDispose } from '../useDispose'
 import { MAINS } from './mains'
 import { lerp, useLevel } from './useLevel'
 
@@ -80,6 +81,7 @@ export function RoomLights() {
     [],
   )
   const panelOn = useMemo(() => new THREE.Color(L.panel).multiplyScalar(L.panelIntensity), [])
+  useDispose(panelMat)
 
   useFrame(() => {
     const k = light.v

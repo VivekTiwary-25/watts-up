@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { VISUALS } from '@/data/config'
 import type { Anchor } from '../layout'
+import { useDispose } from '../useDispose'
 import { MOTION } from './mains'
 import { anchorOf, useLevel, type Level } from './useLevel'
 
@@ -23,6 +24,7 @@ function Front({ anchor, children }: { anchor: Anchor; children: ReactNode }) {
 /** Small status LED: dull red when off, glowing green when running. */
 function StatusLed({ level, position }: { level: Level; position: [number, number, number] }) {
   const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: LED.off, toneMapped: false }), [])
+  useDispose(mat)
   useFrame(() => {
     mat.color.copy(LED_OFF).lerp(LED_ON, level.v)
   })
@@ -49,6 +51,7 @@ const MW_DARK = new THREE.Color('#0b0d10')
 export function Microwave() {
   const level = useLevel('microwave')
   const mat = useMemo(() => new THREE.MeshBasicMaterial({ color: MW_DARK, toneMapped: false }), [])
+  useDispose(mat)
   useFrame(({ clock }) => {
     const hum = MOTION.reduce ? 1 : 0.92 + 0.08 * Math.sin(clock.elapsedTime * 11)
     mat.color

@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { VISUALS } from '@/data/config'
 import { ROOMS } from '../layout'
+import { useDispose } from '../useDispose'
 import { MOTION } from './mains'
 import { anchorOf, useLevel } from './useLevel'
 
@@ -32,6 +33,7 @@ export function Ac() {
       }),
     [],
   )
+  useDispose(mat)
 
   useFrame(({ clock }) => {
     const breathe = MOTION.reduce ? 1 : 0.85 + 0.15 * Math.sin(clock.elapsedTime * 1.6)

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { VISUALS } from '@/data/config'
+import { useDispose } from '../useDispose'
 import { MOTION } from './mains'
 import { anchorOf, useLevel } from './useLevel'
 
@@ -23,6 +24,7 @@ export function Tv() {
     [],
   )
   const geo = useMemo(() => new THREE.PlaneGeometry(tv.size[0] * 0.9, tv.size[1] * 0.82), [])
+  useDispose(mat, geo)
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
