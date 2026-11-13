@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { X } from 'lucide-react'
 import { APPLIANCE_BY_ID } from '@/data/appliances'
+import { HOURS } from '@/data/config'
 import { useBill } from '@/store/useHouse'
 import { useHouse } from '@/store/useHouse'
 import { formatINR } from '@/lib/format'
@@ -17,8 +18,12 @@ export function ApplianceCard() {
     bill = useBill(),
     on = useHouse((s) => s.on),
     toggle = useHouse((s) => s.toggle),
+    powerCut = useHouse((s) => s.powerCut),
+    picks = useHouse((s) => s.picks),
+    pick = useHouse((s) => s.pick),
     hours = useHouse((s) => s.hours),
     setHours = useHouse((s) => s.setHours)
+  const cutActive = powerCut !== 'off'
   const item = id ? APPLIANCE_BY_ID[id] : null,
     line = bill.items.find((x) => x.id === id)
 
@@ -86,9 +91,9 @@ export function ApplianceCard() {
             className="ui-range"
             aria-label={`${item.name} hours per day`}
             aria-valuetext={`${hours[id!]} hours per day`}
-            min={0}
-            max={24}
-            step={0.5}
+            min={HOURS.min}
+            max={HOURS.max}
+            step={HOURS.step}
             value={hours[id!]}
             onChange={(event) => setHours(id!, event.currentTarget.valueAsNumber)}
           />
@@ -99,11 +104,11 @@ export function ApplianceCard() {
                 : 'No current cost'}
             </div>
             <label className="flex items-center gap-2 text-sm">
-              {on[id!] ? 'On' : 'Off'}
+              {cutActive ? 'Keep on inverter' : on[id!] ? 'On' : 'Off'}
               <Switch
-                aria-label={`Toggle ${item.name}`}
-                checked={on[id!]}
-                onCheckedChange={() => toggle(id!)}
+                aria-label={cutActive ? `Keep ${item.name} on inverter` : `Toggle ${item.name}`}
+                checked={cutActive ? picks.includes(id!) : on[id!]}
+                onCheckedChange={() => (cutActive ? pick(id!) : toggle(id!))}
               />
             </label>
           </div>
