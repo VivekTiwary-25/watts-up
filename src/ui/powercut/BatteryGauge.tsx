@@ -31,7 +31,7 @@ export function BatteryGauge({ hours }: { hours: number }) {
         fill={short ? 'var(--destructive)' : '#8fbfb3'}
         initial={false}
         animate={{ width: FILL_WIDTH * ratio }}
-        transition={reduced ? { duration: 0 } : { type: 'spring', duration: 0.3, bounce: 0 }}
+        transition={reduced ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       />
     </svg>
   )

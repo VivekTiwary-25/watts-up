@@ -121,6 +121,8 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
   const watts = loadWatts(picks)
   const open = Math.max(0, POWER_CUT.picks - picks.length)
   const slots = Array.from({ length: POWER_CUT.picks }, (_, index) => picks[index] ?? null)
+  // Slots already filled when the card opens should not pulse; only new picks do.
+  const [initialPicks] = useState(() => new Set(picks))
 
   return (
     <CardShell reduced={reduced} shakeAt={pickError?.at} label="Inverter backup">
@@ -147,20 +149,24 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
           {slots.map((id, index) => (
             <li key={id ?? `empty-${index}`}>
               {id ? (
-                <button
+                <motion.button
                   type="button"
                   onClick={() => pick(id)}
                   title={APPLIANCE_BY_ID[id].name}
                   aria-label={`Remove ${APPLIANCE_BY_ID[id].name} from backup`}
-                  className="flex min-h-11 w-full items-center gap-2 rounded-xl bg-white/5 pr-2.5 pl-3 text-left text-sm transition-[background-color] duration-150 ease-out hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  className="relative flex min-h-11 w-full items-center gap-2 rounded-xl bg-white/5 pr-2.5 pl-3 text-left text-sm transition-[background-color] duration-150 ease-out hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  initial={reduced || initialPicks.has(id) ? false : { scale: 0.97 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.22, ease: CARD_EASE }}
                 >
-                  <span className="truncate">{APPLIANCE_BY_ID[id].name}</span>
+                  {!initialPicks.has(id) && <SlotPulse />}
+                  <span className="relative truncate">{APPLIANCE_BY_ID[id].name}</span>
                   <X
-                    className="ml-auto size-3.5 shrink-0 opacity-70"
+                    className="relative ml-auto size-3.5 shrink-0 opacity-70"
                     strokeWidth={1.5}
                     aria-hidden="true"
                   />
-                </button>
+                </motion.button>
               ) : (
                 <div className="flex min-h-11 items-center rounded-xl border border-dashed border-white/15 px-3 text-sm text-muted-foreground">
                   Empty
@@ -350,6 +356,19 @@ function CardShell({
         </motion.div>
       </motion.div>
     </motion.section>
+  )
+}
+
+/** One-shot green-cyan glow when a slot fills. Opacity only, so it is motion-safe. */
+function SlotPulse() {
+  return (
+    <motion.span
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 rounded-xl bg-teal-300/10 shadow-[inset_0_0_0_1px_rgba(94,234,212,0.5),0_0_16px_rgba(94,234,212,0.22)]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0] }}
+      transition={{ duration: 0.7, times: [0, 0.25, 1], ease: 'easeOut' }}
+    />
   )
 }
 
