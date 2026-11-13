@@ -14,6 +14,7 @@ export const INVERTER = { name: 'VoltVault 1800', capacityWh: 1800, usableFracti
 export const POWER_CUT = { picks: 3, minBackupHours: 2, costRatePerUnit: 8, flickerMs: 1400 }
 export const DEFAULT_TARGET_BILL = 1500
 export const TARGET_RANGE = { min: 200, max: 5000, step: 50 }
+export const HOURS = { min: 0, max: 24, step: 0.5 }
 export const TIP_HOURS_CUT = 2
 export const SOUND = {
   masterVolume: 0.22,
