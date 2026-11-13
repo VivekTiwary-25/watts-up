@@ -17,6 +17,7 @@ import { lerp } from './effects/useLevel'
 import { ALL_ANCHORS, FLOOR, METER } from './layout'
 import { PickFeedback } from './PickFeedback'
 import { PostFX } from './PostFX'
+import { RoomLabels } from './RoomLabels'
 import { Quality } from './Quality'
 import { requestLiveShadows } from './useQuality'
 
@@ -160,6 +161,7 @@ export function Scene() {
         <group visible={rooms}>
           <House />
           <Furniture />
+          <RoomLabels />
           <Meter />
           {ALL_ANCHORS.map((a) => (
             <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
