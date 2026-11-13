@@ -3,13 +3,15 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'
 import { VISUALS } from '@/data/config'
-import { LIGHT_ANCHORS, type Anchor, type Vec3 } from '../layout'
-import { MAINS } from './mains'
+import { LIGHT_ANCHORS, ROOM_IDS, ROOMS, type Anchor, type Vec3 } from '../layout'
+import { ease } from './drive'
+import { MAINS, MOTION } from './mains'
 import { lerp, useLevel } from './useLevel'
 
 const A = VISUALS.ambient
 const L = VISUALS.lights
 const SKY = A.hemiSky.map((c) => new THREE.Color(c))
+const GROUND = A.hemiGround.map((c) => new THREE.Color(c))
 const SUN = A.sun.map((c) => new THREE.Color(c))
 
 /** Blend a [lightsOn, lightsOff, powerCut] triple by light level and blackout. */
@@ -25,8 +27,9 @@ function mixColor3(out: THREE.Color, v: THREE.Color[], light: number, black: num
 }
 
 /**
- * Global lights: warm daylight-ish fill while the lights are on, cool moonlight when they are
- * off, near-black during a power cut. Replaces the static hemi/ambient/sun from the grey box.
+ * Global lights: an evening house. Low cool moonlight fill when the lights are off (a dark house
+ * at night), a little warm bounce from below when they are on (the room pools do the real work),
+ * near-black during a power cut. Replaces the static hemi/ambient/sun from the grey box.
  */
 export function SceneLights() {
   const light = useLevel('light')
@@ -39,6 +42,7 @@ export function SceneLights() {
     if (hemi.current) {
       hemi.current.intensity = mix3(A.hemiIntensity, light.v, b)
       mixColor3(hemi.current.color, SKY, light.v, b)
+      mixColor3(hemi.current.groundColor, GROUND, light.v, b)
     }
     if (amb.current) amb.current.intensity = mix3(A.ambientIntensity, light.v, b)
     if (sun.current) {
@@ -49,7 +53,7 @@ export function SceneLights() {
 
   return (
     <>
-      <hemisphereLight ref={hemi} args={[A.hemiSky[0], '#1a1d24', A.hemiIntensity[0]]} />
+      <hemisphereLight ref={hemi} args={[A.hemiSky[0], A.hemiGround[0], A.hemiIntensity[0]]} />
       <ambientLight ref={amb} intensity={A.ambientIntensity[0]} />
       <directionalLight
         ref={sun}
@@ -71,7 +75,13 @@ export function SceneLights() {
 RectAreaLightUniformsLib.init()
 
 /** Wall-mounted tube light: a soft cool rect light instead of a warm point light. */
-const TUBE = { model: 'tubelight.glb', color: '#f2f7ff', intensity: 4, width: 1.2, height: 0.08 }
+const TUBE = {
+  model: 'tubelight.glb',
+  color: '#f2f7ff',
+  intensity: L.tubeIntensity,
+  width: 1.2,
+  height: 0.08,
+}
 const isTube = (a: Anchor) => a.model === TUBE.model
 
 /** Pose of a tube's rect light: just in front of the fixture, facing into the room. */
@@ -92,25 +102,58 @@ function tubePose(a: Anchor): { position: Vec3; quaternion: THREE.Quaternion } {
   }
 }
 
+/** Warm pool light per room: room floor centre, raised to pool height. */
+const POOLS = ROOM_IDS.map((id) => {
+  const [x, , z] = ROOMS[id].center
+  return { id, position: [x, L.poolHeight, z] as Vec3 }
+})
+
 /**
- * One light per room fixture: a warm point light under the chandelier / ceiling lamp, a soft rect
- * light in front of each tube light. The fixtures glow themselves (ApplianceModel). Always
- * mounted (a changing light count would recompile every material); only intensities move.
+ * Per-room lights: a warm point light under the chandelier / ceiling lamp, a soft rect light in
+ * front of each tube light, and a warm pool light at each room's centre so a lit room reads as a
+ * warm pool against the night. Switching on cascades room by room (each pool has its own fill
+ * speed); reduced motion and the power-cut flicker follow the light level directly. The fixtures
+ * glow themselves (ApplianceModel). Always mounted (a changing light count would recompile every
+ * material); only intensities move. Budget: 2 fixture + 4 pool point lights, 2 rect lights.
  */
 export function RoomLights() {
   const light = useLevel('light')
   const points = useRef<(THREE.PointLight | null)[]>([])
   const rects = useRef<(THREE.RectAreaLight | null)[]>([])
+  const pools = useRef<(THREE.PointLight | null)[]>([])
+  const fill = useRef(POOLS.map(() => 0))
   const poses = useMemo(() => LIGHT_ANCHORS.map((a) => (isTube(a) ? tubePose(a) : null)), [])
 
-  useFrame(() => {
+  useFrame((_, dt) => {
     const k = light.v
     for (const p of points.current) if (p) p.intensity = L.warmIntensity * k
     for (const r of rects.current) if (r) r.intensity = TUBE.intensity * k
+    const direct = MOTION.reduce || MAINS.phase === 'flicker'
+    for (let i = 0; i < POOLS.length; i++) {
+      const rate = L.poolRates[i % L.poolRates.length]
+      const f = direct ? k : ease(fill.current[i], k, dt, false, rate)
+      fill.current[i] = f
+      const p = pools.current[i]
+      // ease-in curve: the pool blooms late in the fade, which reads as a bulb warming up
+      if (p) p.intensity = L.poolIntensity * f * f
+    }
   })
 
   return (
     <group name="room-lights">
+      {POOLS.map((pool, i) => (
+        <pointLight
+          key={`pool-${pool.id}`}
+          ref={(el) => {
+            pools.current[i] = el
+          }}
+          position={pool.position}
+          color={L.pool}
+          intensity={0}
+          distance={L.poolDistance}
+          decay={2}
+        />
+      ))}
       {LIGHT_ANCHORS.map((a, i) => {
         const pose = poses[i]
         if (pose) {

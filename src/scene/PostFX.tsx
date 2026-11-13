@@ -16,7 +16,9 @@ const B = QUALITY.bloom
  * The ONE EffectComposer. Must sit inside <Selection> (Outline reads it).
  * Pass order = JSX order: AO -> Bloom -> AgX tone map -> Outline -> Vignette.
  * The renderer runs NoToneMapping (see App) so bloom sees real HDR values and
- * we tone-map exactly once, here. Low tier: no AO, cheaper bloom, no MSAA.
+ * we tone-map exactly once, here. Bloom's threshold is tuned so the emissive
+ * glows (fixtures, TV, geyser lamp, AC haze) halo softly in the night scene.
+ * Low tier: no AO, cheaper bloom (fewer mips), no MSAA. AO is half-res and subtle.
  */
 export function PostFX() {
   const tier = useQuality((s) => s.tier)
@@ -30,6 +32,7 @@ export function PostFX() {
           distanceFalloff={QUALITY.ao.distanceFalloff}
           intensity={QUALITY.ao.intensity}
           quality={QUALITY.ao.quality}
+          halfRes={QUALITY.ao.halfRes}
           color="#05070d"
         />
       )}
