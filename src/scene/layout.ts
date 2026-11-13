@@ -97,6 +97,8 @@ export interface Anchor {
   position: Vec3 // centre of the placeholder box
   size: Vec3
   rotationY?: number
+  /** Model file in /models overriding Appliance.modelFile (e.g. a different fixture per room). */
+  model?: string
 }
 
 /** Appliances that appear once. `light` is in LIGHT_ANCHORS (one per room). */
@@ -139,20 +141,52 @@ export const ANCHORS: Anchor[] = [
   { id: 'geyser', room: 'bathroom', position: [4, 1.9, -4.7], size: [0.45, 0.7, 0.4] },
 ]
 
-/** Plan-view [x, z] offset from the room centre, so a light never sits on another ceiling item. */
-const LIGHT_OFFSET: Partial<Record<Room, [number, number]>> = {
-  living: [2.2, -1.2], // the ceiling fan owns the middle of the living room
-}
+/**
+ * Tube light: 1.2 m along its local x, turned to run along the east (x = 6) wall facing -x.
+ * The east walls are seen by the overview camera and by the kitchen/bathroom room shots
+ * (the back walls sit above the top edge of the room shots).
+ */
+const TUBE: Vec3 = [1.2, 0.06, 0.06]
+const TUBE_X = FLOOR.width / 2 - WALL.thickness / 2 - TUBE[2] / 2 - 0.01
+const TUBE_Y = 2.25
 
-export const LIGHT_ANCHORS: Anchor[] = ROOM_IDS.map((r) => {
-  const [dx, dz] = LIGHT_OFFSET[r] ?? [0, 0]
-  return {
+/**
+ * One light fixture per room. Living: chandelier (off-centre, the ceiling fan owns the middle).
+ * Bedroom: pendant ceiling lamp. Kitchen and bathroom: a tube light high on the east wall,
+ * past the stove (kitchen) and the washer (bathroom).
+ */
+export const LIGHT_ANCHORS: Anchor[] = [
+  {
     id: 'light',
-    room: r,
-    position: [ROOMS[r].center[0] + dx, WALL.height - 0.06, ROOMS[r].center[2] + dz],
-    size: [0.5, 0.06, 0.5],
-  }
-})
+    room: 'living',
+    model: 'chandelier.glb',
+    position: [ROOMS.living.center[0] + 2.2, WALL.height - 0.39, ROOMS.living.center[2] - 1.2],
+    size: [0.8, 0.78, 0.8],
+  },
+  {
+    id: 'light',
+    room: 'kitchen',
+    model: 'tubelight.glb',
+    position: [TUBE_X, TUBE_Y, 4.2],
+    size: TUBE,
+    rotationY: -Math.PI / 2,
+  },
+  {
+    id: 'light',
+    room: 'bedroom',
+    model: 'light.glb',
+    position: [ROOMS.bedroom.center[0], WALL.height - 0.46, ROOMS.bedroom.center[2]],
+    size: [0.45, 0.92, 0.45],
+  },
+  {
+    id: 'light',
+    room: 'bathroom',
+    model: 'tubelight.glb',
+    position: [TUBE_X, TUBE_Y, -4.2],
+    size: TUBE,
+    rotationY: -Math.PI / 2,
+  },
+]
 
 export const ALL_ANCHORS: Anchor[] = [...ANCHORS, ...LIGHT_ANCHORS]
 

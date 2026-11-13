@@ -1,8 +1,9 @@
 import { APPLIANCE_BY_ID } from '@/data/appliances'
 import type { ApplianceId } from '@/store/useHouse'
 
-/** Model file per appliance, from Appliance.modelFile. */
-export const modelUrl = (id: ApplianceId) => `/models/${APPLIANCE_BY_ID[id].modelFile}`
+/** Model file per appliance, from Appliance.modelFile unless `file` overrides it. */
+export const modelUrl = (id: ApplianceId, file?: string) =>
+  `/models/${file ?? APPLIANCE_BY_ID[id].modelFile}`
 
 // Vite serves index.html (200, text/html) for missing files — treat that as missing.
 const probes = new Map<string, Promise<boolean>>()

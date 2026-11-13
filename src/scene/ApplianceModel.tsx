@@ -79,7 +79,7 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
 
 /** Uses `/models/<id>.glb` when it exists, otherwise (or on load error) the grey box. */
 export function ApplianceModel({ anchor }: { anchor: Anchor }) {
-  const url = modelUrl(anchor.id)
+  const url = modelUrl(anchor.id, anchor.model)
   const [exists, setExists] = useState(false)
 
   useEffect(() => {
