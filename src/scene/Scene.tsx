@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useRef } from 'react'
+﻿import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { AccumulativeShadows, RandomizedLight, Stars, useProgress } from '@react-three/drei'
+import {
+  AccumulativeShadows,
+  RandomizedLight,
+  RoundedBox,
+  Stars,
+  useProgress,
+} from '@react-three/drei'
 import { Selection } from '@react-three/postprocessing'
 import { QUALITY } from '@/data/config'
 import { useHouse } from '@/store/useHouse'
@@ -11,25 +17,79 @@ import { Environment } from './Environment'
 import { House } from './House'
 import { IntroVilla } from './IntroVilla'
 import { Effects } from './effects/Effects'
-import { MAINS } from './effects/mains'
+import { WIRING, targetLevel } from './effects/drive'
+import { MAINS, MOTION } from './effects/mains'
 import { lerp } from './effects/useLevel'
-import { ALL_ANCHORS, FLOOR, METER } from './layout'
+import { APPLIANCES } from '@/data/appliances'
+import { Ground, TERRACE } from './Ground'
+import { ALL_ANCHORS, FLOOR } from './layout'
 import { PickFeedback } from './PickFeedback'
 import { PostFX } from './PostFX'
 import { Quality } from './Quality'
 import { requestLiveShadows } from './useQuality'
 
+const M = WIRING.meter
+const TOTAL_WATTS = APPLIANCES.reduce((sum, a) => sum + a.watts, 0)
+
+/**
+ * Electricity meter on the outer east wall: clay housing, a glowing digit window and a disc that
+ * spins with the live load. Faces +x (out of the wall); the window dims in a blackout.
+ */
 function Meter() {
+  const digits = useRef<THREE.MeshStandardMaterial>(null)
+  const disc = useRef<THREE.Mesh>(null)
+  const [w, h, d] = M.size
+  const face = w / 2 + 0.001
+
+  useFrame((_, dt) => {
+    if (digits.current) {
+      digits.current.emissiveIntensity = lerp(1.4, 0.12, MAINS.blackout)
+    }
+    if (disc.current && !MOTION.reduce) {
+      const s = useHouse.getState()
+      let watts = 0
+      for (const a of APPLIANCES) watts += a.watts * targetLevel(s, a.id, MAINS.flicker)
+      disc.current.rotation.x += Math.min(dt, 0.1) * (0.4 + 6 * (watts / TOTAL_WATTS))
+    }
+  })
+
   return (
-    <mesh name="meter" position={METER.position}>
-      <boxGeometry args={METER.size} />
-      <meshStandardMaterial
-        color="#2a2f38"
-        emissive="#3bd6a0"
-        emissiveIntensity={0.25}
-        roughness={0.6}
-      />
-    </mesh>
+    <group name="meter" position={M.position}>
+      {/* back plate on the wall */}
+      <mesh position={[-w / 2 + 0.01, 0, 0]}>
+        <boxGeometry args={[0.02, h + 0.08, d + 0.08]} />
+        <meshStandardMaterial color="#2b3038" roughness={0.9} />
+      </mesh>
+      <RoundedBox args={[w - 0.02, h, d]} radius={0.04} smoothness={3} position={[0.01, 0, 0]}>
+        <meshStandardMaterial color="#c9c4ba" roughness={0.75} />
+      </RoundedBox>
+      {/* digit window */}
+      <mesh position={[face, h * 0.22, 0]} rotation-y={Math.PI / 2}>
+        <planeGeometry args={[d * 0.62, 0.07]} />
+        <meshStandardMaterial
+          ref={digits}
+          color="#06140f"
+          emissive="#3bd6a0"
+          emissiveIntensity={1.4}
+          roughness={0.4}
+          toneMapped={false}
+        />
+      </mesh>
+      {/* dial ring + spinning disc */}
+      <mesh position={[face, -h * 0.12, 0]} rotation-z={-Math.PI / 2}>
+        <cylinderGeometry args={[0.07, 0.07, 0.012, 24]} />
+        <meshStandardMaterial color="#1c2129" roughness={0.6} />
+      </mesh>
+      <mesh ref={disc} position={[face + 0.008, -h * 0.12, 0]}>
+        <boxGeometry args={[0.004, 0.11, 0.018]} />
+        <meshStandardMaterial color="#ffb36b" emissive="#ff8a3d" emissiveIntensity={0.6} />
+      </mesh>
+      {/* status LED, visible from above */}
+      <mesh position={[0.02, h / 2 + 0.004, d * 0.3]}>
+        <sphereGeometry args={[0.014, 10, 8]} />
+        <meshBasicMaterial color="#4dff9a" toneMapped={false} />
+      </mesh>
+    </group>
   )
 }
 
@@ -95,7 +155,9 @@ function GroundShadows() {
   // one bake while loading, one more once everything has loaded (not one per file)
   const bakeKey = useProgress((s) => (s.active ? -1 : s.loaded))
   const G = QUALITY.groundShadow
-  return <GroundShadowBake key={bakeKey} frames={G.frames} opacity={G.opacity} scale={G.scale} />
+  // keep the baked-shadow quad on the terrace (a larger quad showed as a tinted patch)
+  const scale = Math.min(G.scale, TERRACE.depth)
+  return <GroundShadowBake key={bakeKey} frames={G.frames} opacity={G.opacity} scale={scale} />
 }
 
 function GroundShadowBake({
@@ -157,6 +219,7 @@ export function Scene() {
       <Selection>
         {/* the clay rooms hide while the intro or the villa view shows the villa */}
         <group visible={rooms}>
+          <Ground />
           <House />
           <Meter />
           {ALL_ANCHORS.map((a) => (
