@@ -1,14 +1,24 @@
 import { Component, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
+import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { Select } from '@react-three/postprocessing'
+import { VISUALS } from '@/data/config'
+import type { ApplianceId } from '@/store/useHouse'
 import { ApplianceBox } from './ApplianceBox'
+import { MOTION } from './effects/mains'
+import { useLevel } from './effects/useLevel'
 import { glbExists, modelUrl } from './glb'
 import type { Anchor } from './layout'
 import { useApplianceInteraction, useHighlighted } from './useApplianceInteraction'
 import { markShadowsDirty } from './useQuality'
 
 const noRaycast = () => null
+
+/** GLB nodes that spin around their local Y axis while the appliance runs. */
+const SPIN_NODES: Partial<Record<ApplianceId, { node: string; maxSpin: number }>> = {
+  fan: { node: 'ceiling_fan_blades', maxSpin: VISUALS.fan.maxSpin },
+}
 
 /**
  * Invisible pointer target sized to the anchor box (scaled unit cube). material.visible = false
@@ -37,9 +47,11 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
   const { scene } = useGLTF(url)
   const handlers = useApplianceInteraction(anchor.id)
   const highlighted = useHighlighted(anchor.id)
+  const level = useLevel(anchor.id)
+  const spin = SPIN_NODES[anchor.id]
 
   // Clone (cache is shared, e.g. 4 lights) and fit uniformly inside the anchor box, centred on it.
-  const { object, scale, offset } = useMemo(() => {
+  const { object, scale, offset, spinNode } = useMemo(() => {
     const object = scene.clone(true)
     object.traverse((o) => {
       if (!(o as THREE.Mesh).isMesh) return
@@ -56,8 +68,14 @@ function Model({ anchor, url }: { anchor: Anchor; url: string }) {
       -center.y * scale,
       -center.z * scale,
     ]
-    return { object, scale, offset }
-  }, [scene, anchor.size])
+    const spinNode = spin ? object.getObjectByName(spin.node) : undefined
+    return { object, scale, offset, spinNode }
+  }, [scene, anchor.size, spin])
+
+  useFrame((_, dt) => {
+    if (!spinNode || !spin || MOTION.reduce) return
+    spinNode.rotation.y += Math.min(dt, 0.1) * spin.maxSpin * level.v
+  })
 
   // shadow maps are cached: include the model as soon as it lands
   useEffect(markShadowsDirty, [object])
