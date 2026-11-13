@@ -1,0 +1,13 @@
+# T01 scaffold result
+- Preserved the existing Vite/React/TypeScript scaffold on branch `t01-scaffold`.
+- Stack dependencies, Tailwind v4, `@/` aliases, jsdom Vitest, and smoke test are configured.
+- Added neutral CSS-variable shadcn config and button, slider, switch, card, tooltip, progress components.
+- Added dark navy tokens, system font stack, glass/clay utilities, and global reduced-motion styles.
+- Kept the full-screen grey-box R3F canvas, orbit controls, title overlay, and required directory placeholders.
+- Removed App.css and unused SVG demo assets; `.scaffold-tmp` was already absent.
+- All five requested skills are available in `.claude/skills`; sources are recorded in skills-lock.json.
+- `.agents` is read-only in this session, so new skills could not also be installed there.
+- Verify with `npm test`, `npm run build`, `npm run lint`: all pass; lint warns about the generated buttonVariants export and build warns about bundle size.
+- `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort` started and served HTTP 200; browser visual verification failed because Chrome's GPU process could not start in this environment.
+- Commits were attempted but blocked: `.git` is read-only and Git cannot create `.git/index.lock`; nothing pushed or merged.
+- Automatic approval review rejected deleting unused `src/assets/hero.png`; the binary remains. The pre-existing edit to coord/tasks/T01-scaffold.md was untouched.
