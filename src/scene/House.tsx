@@ -1,7 +1,17 @@
 import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
 import { useHouse } from '@/store/useHouse'
-import { FLOOR, ROOMS, ROOM_IDS, WALLS, type Room, type Vec3 } from './layout'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import {
+  FLOOR,
+  ROOMS,
+  ROOM_IDS,
+  WALL,
+  WALLS,
+  type Room,
+  type Vec3,
+  type WallSegment,
+} from './layout'
 import { mergeBoxes } from './mergeBoxes'
 
 /** Warm, dark wood per room (bathroom: cool stone). Roughness varies a touch per room. */
@@ -13,6 +23,32 @@ const FLOORS = {
 } as const
 
 const SKIRTING = { height: 0.09, inset: 0.015 } as const
+
+/** Dollhouse cutaway: the far outer walls stay full height, the rest are cut down to this. */
+const CUT_HEIGHT = 0.9
+/** Soft rounded cap along each cut wall: a flattened capsule, a touch wider than the wall. */
+const CAP = { radius: WALL.thickness / 2 + 0.025, squash: 0.45 } as const
+
+const EPS = 0.01
+const HALF_W = FLOOR.width / 2
+const HALF_D = FLOOR.depth / 2
+
+/** Back (z = -5), west (x = -6) and east (x = +6) walls keep their full height. */
+function isFarWall(w: WallSegment): boolean {
+  const [x, , z] = w.position
+  if (w.size[0] > w.size[2]) return Math.abs(z + HALF_D) < EPS
+  return Math.abs(x + HALF_W) < EPS || Math.abs(x - HALF_W) < EPS
+}
+
+/** Same footprint as the layout segment; height derived from where the segment sits. */
+const SHELL_WALLS: (WallSegment & { cut: boolean })[] = WALLS.map((w) => {
+  if (isFarWall(w)) return { ...w, cut: false }
+  return {
+    position: [w.position[0], CUT_HEIGHT / 2, w.position[2]] as Vec3,
+    size: [w.size[0], CUT_HEIGHT, w.size[2]] as Vec3,
+    cut: true,
+  }
+})
 
 /**
  * Clay-like soft white walls. A few shared variants with slightly different roughness/tint
@@ -35,7 +71,7 @@ const SKIRTING_MATERIAL = new THREE.MeshStandardMaterial({
  * segment), skirting into one more. Built once, shared for the app's lifetime.
  */
 const WALL_GEOMETRIES = WALL_MATERIALS.map((_, v) =>
-  mergeBoxes(WALLS.filter((_, i) => i % WALL_MATERIALS.length === v)),
+  mergeBoxes(SHELL_WALLS.filter((_, i) => i % WALL_MATERIALS.length === v)),
 )
 const SKIRTING_GEOMETRY = mergeBoxes(
   WALLS.map((w) => ({
@@ -43,6 +79,33 @@ const SKIRTING_GEOMETRY = mergeBoxes(
     size: [w.size[0] + SKIRTING.inset * 2, SKIRTING.height, w.size[2] + SKIRTING.inset * 2] as Vec3,
   })),
 )
+
+const CAP_MATERIAL = new THREE.MeshStandardMaterial({
+  color: '#ebe6dd',
+  roughness: 0.82,
+  metalness: 0,
+})
+
+/** One flattened capsule per cut wall, all merged into a single draw call. */
+function buildCapGeometry(): THREE.BufferGeometry {
+  const parts = SHELL_WALLS.filter((w) => w.cut).map((w) => {
+    const alongX = w.size[0] > w.size[2]
+    const length = Math.max(0.001, (alongX ? w.size[0] : w.size[2]) - CAP.radius * 2)
+    const g = new THREE.CapsuleGeometry(CAP.radius, length, 4, 12)
+    // capsule axis is +y: lay it along the wall, then flatten it into a soft rounded strip
+    if (alongX) g.rotateZ(Math.PI / 2)
+    else g.rotateX(Math.PI / 2)
+    g.scale(1, CAP.squash, 1)
+    g.translate(w.position[0], CUT_HEIGHT, w.position[2])
+    return g
+  })
+  const merged = mergeGeometries(parts)
+  for (const p of parts) p.dispose()
+  if (!merged) throw new Error('House: could not merge wall caps')
+  merged.computeBoundingSphere()
+  return merged
+}
+const CAP_GEOMETRY = buildCapGeometry()
 
 /** Walls never block or receive pointer events: only appliances (and floors) are targets. */
 const noRaycast = () => null
@@ -133,6 +196,16 @@ export function House({ hideShell = false }: { hideShell?: boolean }) {
           raycast={noRaycast}
         />
       ))}
+
+      {/* rounded caps along the top of the cut-down walls */}
+      <mesh
+        name="wall-caps"
+        geometry={CAP_GEOMETRY}
+        material={CAP_MATERIAL}
+        castShadow
+        receiveShadow
+        raycast={noRaycast}
+      />
 
       {/* skirting: a dark band hugging the foot of every wall segment */}
       <mesh
