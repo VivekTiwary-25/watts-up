@@ -15,6 +15,12 @@ Repo `D:\projects\vibe_sprint` (branch main) -> https://github.com/VivekTiwary-2
 Merged: T01 scaffold, T02 data/bill/powercut/store, T04 UI panels, T03 grey-box scene, T06 UI tests, T07 vendor split + LoadingScreen (NOT mounted yet: it waits for useProgress; mount once GLBs exist or guard for no-assets). 37 tests pass.
 Running: T05 Power Cut overlay (Grok, `t05-powercut-ui`; boss must mount `<PowerCutOverlay />` in HUD/App on merge; may contain stubs -> keep main's store/powercut), T08 effects+wires (Vachana opus, resumed), T09 intro (Luna), T10 sounds (Sol).
 
+## Update 17:15
+Live: https://watts-up-jade.vercel.app/ (Vercel auto-deploys on push to main; README links it).
+Also merged: T09 intro, T10 sounds, T11 README, T08 effects+wires, T12 prettier (`npm run format`), T13 model pipeline. 64 tests.
+Integration TODO for boss: mount `<HouseModel />` + `<Environment />` (src/scene) in Scene.tsx after T14 merges; mount `<PowerCutOverlay />` after T05 merges (keep main's store/powercut over Grok's stubs).
+Running: T05 Grok, T14 realism (Vachana opus), T15 a11y (Sol), R02 review (Luna, read-only).
+
 ## Next steps
 1. Merge T05/T08/T09/T10 as they finish. Then do the browser check of all 3 judge checks (toggle -> bill; target progress; power cut exactly 3).
 2. Vercel: user asked to import repo at vercel.com/new (Vite preset); waiting on their URL. Auto-deploys on push after that.
