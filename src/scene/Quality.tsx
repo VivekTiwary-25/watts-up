@@ -64,7 +64,8 @@ function ShadowCache() {
   useEffect(() => {
     const shadowMap = get().gl.shadowMap
     const prev = shadowMap.autoUpdate
-    shadowMap.autoUpdate = false
+    // a bake may already have asked for live frames before this effect ran
+    shadowMap.autoUpdate = SHADOWS.liveFrames > 0
     markShadowsDirty()
     const unsub = useHouse.subscribe(markShadowsDirty)
     return () => {
