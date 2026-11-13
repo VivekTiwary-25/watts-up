@@ -5,8 +5,8 @@ Updated: 2026-11-13 15:50 · Phase 1 (core flow with placeholders)
 | Worker | Model | Task | Status | % left |
 |---|---|---|---|---|
 | Boss | Claude Opus 5.5 (main acct) | plan / review / merge | active | unknown: OMP Anthropic login expired |
-| Vachana | Claude Opus (2nd acct) | T01 scaffold | running | not reported by CLI |
-| Codex Sol | gpt-6.1-sol | T02 data + bill + powercut + store (after T01) | queued | 5h 65% / 7d 68% (shared w/ Luna) |
+| Vachana | Claude (2nd acct) | — | BLOCKED: 403 Cloudflare "Attention Required" on every call since 15:45 | n/a |
+| Codex Sol | gpt-6.1-sol | T01 scaffold, then T02 core logic | running | 5h 65% / 7d 68% (shared w/ Luna) |
 | Codex Luna | gpt-6-luna | T04 UI panels (after T01) | queued | shared w/ Sol |
 | Grok | xai-oauth/grok-4.7 | R01 tech research | running | 7d 81% |
 | Antigravity | gemini-3.8-flash | — | BLOCKED: Google disabled acct (403 TOS_VIOLATION) | n/a |

@@ -4,6 +4,8 @@ Goal: empty runnable app skeleton every other worker builds on. Speed over polis
 
 Files you may touch: everything at repo root EXCEPT `AGENTS.md`, `CLAUDE.md`, `coord/` (only add `coord/results/T01.md`).
 
+RESUME NOTE: a previous run already created most files (uncommitted: package.json, vite/ts configs, src/, one skill). Do NOT redo them. First commit the existing work in several logical commits (scaffold; deps; alias+tailwind; vitest; canvas shell; skills), verifying each still builds. Then finish what's missing: shadcn init + components (step 4), theme (step 6), remaining skills (step 8), result file. Delete `.scaffold-tmp` and unused Vite demo assets/App.css.
+
 Steps (commit after each):
 1. `npm create vite@latest . -- --template react-ts` (dir is non-empty: scaffold in a temp dir and copy in if needed). Commit `chore: scaffold vite react-ts`.
 2. Install: three @react-three/fiber @react-three/drei @react-three/postprocessing postprocessing zustand motion gsap @gsap/react ; dev: @types/three vitest @vitest/coverage-v8 jsdom @testing-library/react tailwindcss @tailwindcss/vite. Commit `chore: add 3d, state, animation deps`.
