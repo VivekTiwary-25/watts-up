@@ -15,6 +15,9 @@ Merged T01-T18 + R01/R02: scaffold, data/bill/powercut/store, UI panels, grey-bo
 Boss browser test on live site 18:15: ALL 3 judge checks pass (AC toggle 798->2858; target ring over/under; power cut exactly 3, 4th blocked w/ message, result card + best combo, restore OK).
 Running: T20 scene polish (Vachana sonnet: fan/light overlap, red flash on blocked pick, green halo on picks), T21 overlay polish (Luna: 3.5s message, progress text, result highlights), T22 README round 2 (Sol). T19 (Sol's alt overlay in vs-wt/t19-powercut-alt) is NOT needed - don't merge.
 
+## Update 18:40
+Merged T20 (fan/light separated, red flash blocked pick, green halo), T21 (overlay message 3.5s, progress, highlights), T22 (README features/architecture/verification). Prettier now endOfLine auto. 88 tests, 185 commits. Running: R03 scene review (Vachana opus). Sol + Luna idle, waiting for models.
+
 ## Next
 1. Merge T20/T21/T22 (re-test power cut message on live site after).
 2. Models: public/models still empty - ask user/team for status. When they land in public/models/raw: run optimizer (worker task), verify size < 15 MB, browser check, fill README credits from team's sheet.
