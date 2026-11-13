@@ -1,4 +1,4 @@
-# T01 — Scaffold (worker: Vachana Claude) · branch `t01-scaffold`
+﻿# T01 â€” Scaffold (worker: Codex Sol) Â· branch `t01-scaffold`
 
 Goal: empty runnable app skeleton every other worker builds on. Speed over polish (~15 min).
 

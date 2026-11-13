@@ -1,4 +1,4 @@
-# Usage: .\coord\run-worker.ps1 -Worker vachana|sol|luna|grok -Task T01-scaffold -Branch t01-scaffold [-NoJunction]
+﻿# Usage: .\coord\run-worker.ps1 -Worker vachana|sol|luna|grok -Task T01-scaffold -Branch t01-scaffold [-NoJunction]
 param([string]$Worker, [string]$Task, [string]$Branch, [switch]$NoJunction)
 $ErrorActionPreference = 'Continue'
 $repo = 'D:\projects\vibe_sprint'
@@ -11,8 +11,6 @@ if (-not (Test-Path $wt)) {
 if (-not $NoJunction -and (Test-Path "$repo\node_modules") -and -not (Test-Path "$wt\node_modules")) {
   cmd /c mklink /J "$wt\node_modules" "$repo\node_modules" | Out-Null
 }
-Copy-Item "$repo\coord\tasks\$Task.md" "$wt\coord\tasks\$Task.md" -Force -ErrorAction SilentlyContinue
-Copy-Item "$repo\coord\CONTRACT.md" "$wt\coord\CONTRACT.md" -Force -ErrorAction SilentlyContinue
 $prompt = "You are a worker on a hackathon repo. Read AGENTS.md, coord/CONTRACT.md and coord/tasks/$Task.md, then do exactly that task in this directory (your own git worktree, branch $Branch). Commit small real steps as you go. Do not push or merge. When done write coord/results/$Task.md, commit it, and exit."
 Set-Location $wt
 "=== $(Get-Date -Format s) START $Worker $Task in $wt" | Out-File $log -Encoding utf8
