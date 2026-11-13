@@ -5,3 +5,4 @@ dist
 .env*
 coord/logs/
 coord/usage.json
+public/models/raw/
