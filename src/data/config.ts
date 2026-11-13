@@ -67,6 +67,34 @@ export const VISUALS = {
   },
 } as const
 
+/** Render quality tiers + post-processing / atmosphere tunables (T14). */
+export const QUALITY = {
+  /** Device-pixel-ratio cap per tier. */
+  dpr: { high: 1.75, low: 1 },
+  /** Floor for performance.regress() while the camera moves (fraction of the tier DPR). */
+  regressMin: 0.6,
+  /** PerformanceMonitor flip-flops before it locks into the low tier for good. */
+  flipflops: 3,
+  multisampling: { high: 2, low: 0 },
+  ao: { radius: 0.5, distanceFalloff: 0.6, intensity: 1.6, quality: 'medium' },
+  bloom: {
+    intensity: { high: 0.55, low: 0.35 },
+    threshold: 0.7,
+    smoothing: 0.2,
+    /** Mip levels: fewer = cheaper and tighter. */
+    levels: { high: 7, low: 4 },
+  },
+  vignette: { offset: 0.28, darkness: 0.55 },
+  /** Shadow-map refresh: re-render shadows this often (ms) instead of every frame. */
+  shadowRefreshMs: 1000,
+  groundShadow: { frames: 40, opacity: 0.6, scale: 15 },
+  sky: { top: '#03060f', mid: '#0a1530', horizon: '#16264a' },
+  /** Overview camera is ~21 units from the back wall: the far side fades just a touch. */
+  fog: { color: '#0e1a33', near: 20, far: 52 },
+  stars: { count: 700, radius: 80, depth: 40, factor: 3 },
+  rim: { color: '#9fd8ff', intensity: 0.9, blackoutKeep: 0.35 },
+} as const;
+
 export const ROOMS: { id: Exclude<RoomId, 'all'>; name: string }[] = [
   { id: 'living', name: 'Living room' },
   { id: 'kitchen', name: 'Kitchen' },
