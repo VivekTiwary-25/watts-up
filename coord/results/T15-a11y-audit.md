@@ -1,0 +1,14 @@
+# T15 accessibility audit
+- Fixed `src/ui/ApplianceCard.tsx:88`, `src/ui/TargetPanel.tsx:64`: named native ranges expose hours/target value text; appliance switches have names and Radix switch semantics.
+- Fixed `src/ui/ApplianceCard.tsx:32`: Escape clears selected/hovered details; selected cards focus Close and restore the opener; card accepts pointer input.
+- Fixed `src/index.css:82`: visible glow focus outlines and 44px control targets; DOM order follows keyboard navigation.
+- Fixed `src/index.css:73`, `src/ui/IntroOverlay.tsx:31`: stronger glass opacity and dark CTA text; calculated muted contrast >=7.09:1, CTA >=7.20:1.
+- Fixed `src/ui/BillPanel.tsx:19`, `src/ui/TargetPanel.tsx:23`: atomic polite announcements debounce 500ms; target also retains visible under/over text.
+- Fixed `src/ui/AnimatedNumber.tsx`: instant values with shared en-IN currency formatting; tabular numbers throughout UI; card motion honors reduced motion.
+- Fixed `src/ui/BillPanel.tsx:18`, `src/ui/HUD.tsx:34`: collapsed bill below 640px, expandable details, bottom control dock, wrapping top bar, pointer-enabled panels.
+- Fixed `src/ui/BillPanel.tsx`: share bars animate transforms; existing CSS disables transitions under reduced motion.
+- Files: top-level UI components/tests listed above, plus ApplianceList.tsx, TopBar.tsx, LoadingScreen.tsx, and src/index.css; no scene, App, or powercut edits.
+- Verify: `npm test` (9 files, 68 tests), `npm run build`, `npm run lint`, and scoped Prettier; all pass, with existing lint/chunk-size warnings outside scope.
+- Not verified: live 360px viewport/zoom, native range keyboard behavior in browsers, touch hardware, or screen-reader speech; browser automation dependencies unavailable.
+- Not fixed outside scope: shared Slider forwards ARIA to its wrapper; these two callers use native ranges, other callers need owner review.
+- Handoff: nine conventional commit entries in coord/results/T15-a11y-audit.commits; no git commits, push, or merge performed.
