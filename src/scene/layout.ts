@@ -77,6 +77,22 @@ export const ALL_ANCHORS: Anchor[] = [...ANCHORS, ...LIGHT_ANCHORS]
 /** Electricity meter, on the outside of the east (kitchen) wall. */
 export const METER: { position: Vec3; size: Vec3 } = { position: [6.2, 1.5, 4], size: [0.12, 0.5, 0.35] }
 
+// ---- energy wires --------------------------------------------------------
+/** Top of the meter, where the riser leaves it. */
+export const METER_TOP: Vec3 = [METER.position[0], METER.position[1] + METER.size[1] / 2, METER.position[2]]
+/** Riser top, just above the walls: every wire fans out from here. */
+export const WIRE_ORIGIN: Vec3 = [METER.position[0] + 0.05, WALL.height + 0.25, METER.position[2]]
+
+export interface Plug { key: string; id: ApplianceId; room: Room; position: Vec3 }
+
+/** Where each wire lands: the top centre of its appliance (one per room for `light`). */
+export const PLUGS: Plug[] = ALL_ANCHORS.map((a) => ({
+  key: a.id === 'light' ? `light-${a.room}` : a.id,
+  id: a.id,
+  room: a.room,
+  position: [a.position[0], a.position[1] + a.size[1] / 2, a.position[2]],
+}))
+
 // ---- walls ---------------------------------------------------------------
 export interface WallSegment { position: Vec3; size: Vec3 }
 
