@@ -3,6 +3,10 @@ import * as THREE from 'three'
 import { QUALITY } from '@/data/config'
 import { Scene } from '@/scene/Scene'
 import { HUD } from './ui/HUD'
+import { LoadingScreen } from './ui/LoadingScreen'
+
+// Weak laptop GPUs (e.g. RTX 2050) choke above ~1.5x on hi-dpi panels.
+const MAX_DPR = Math.min(1.5, QUALITY.dpr.high)
 
 function App() {
   return (
@@ -10,7 +14,7 @@ function App() {
       <Canvas
         // PCFShadowMap: PCFSoft was removed in three r18x and only logs a warning
         shadows="percentage"
-        dpr={[1, QUALITY.dpr.high]}
+        dpr={[1, MAX_DPR]}
         performance={{ min: QUALITY.regressMin }}
         // tone mapping + AA happen once, in the post stack (PostFX)
         gl={{
@@ -24,6 +28,8 @@ function App() {
         <Scene />
       </Canvas>
       <HUD />
+      {/* z-50 overlay above the HUD while the GLBs (villa ~50 MB) stream in */}
+      <LoadingScreen />
     </main>
   )
 }
