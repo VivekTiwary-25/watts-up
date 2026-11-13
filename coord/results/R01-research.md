@@ -40,10 +40,7 @@ export async function glbExists(url: string) {
 <ErrBoundary fallback={<BoxPlaceholder />}>
   <Suspense fallback={null}><Model url={url} /></Suspense>
 </ErrBoundary>
-function Model({ url }: { url: string }) {
-  const { scene } = useGLTF(url) // useDraco + useMeshopt default true
-  return <primitive object={scene} />
-}
+// if (!ok) placeholder; else <ErrBoundary><Suspense><Model url={url} /></Suspense></ErrBoundary>
 ```
 
 ## 4. Hide roof / ceiling
@@ -99,6 +96,12 @@ Pass order = JSX order: AO, bloom, tone map. Renderer `NoToneMapping` or you cla
   </AccumulativeShadows>
   <PerformanceMonitor bounds={(hz) => (hz > 90 ? [50, 90] : [40, 58])} flipflops={3}
     onDecline={() => setLow(true)} onFallback={() => setLow(true)} />
+```tsx
+<Canvas shadows dpr={[1, 1.75]} performance={{ min: 0.5 }} gl={{ antialias: false, toneMapping: THREE.NoToneMapping }}>
+  <AccumulativeShadows temporal frames={40} alphaTest={0.8} scale={12} position={[0, 0.01, 0]}>
+    <RandomizedLight amount={6} radius={4} position={[4, 8, 2]} />
+  </AccumulativeShadows>
+  <PerformanceMonitor bounds={(hz) => (hz > 90 ? [50, 90] : [40, 58])} flipflops={3} onDecline={() => setLow(true)} onFallback={() => setLow(true)} />
   <AdaptiveDpr pixelated />
   <EffectComposer multisampling={low ? 0 : 2} autoClear={false}>
     <N8AO aoRadius={0.5} intensity={1} quality={low ? 'performance' : 'medium'} halfRes={low} />
@@ -107,13 +110,6 @@ Pass order = JSX order: AO, bloom, tone map. Renderer `NoToneMapping` or you cla
   </EffectComposer>
 </Canvas>
 ```
-
-## 8. Compress
-
-`optimize` defaults `--simplify --join --flatten`, which merges named roof/appliance nodes. Don't use that on `house.glb`. Meshopt, not Draco: the decoder is already in drei (`useMeshopt` defaults true). Draco fetches `https://www.gstatic.com/draco/versioned/decoders/1.5.5/` and dies offline. WebP inside a GLB needs no extra loader. Don't Draco and Meshopt the same file. Load with `useGLTF(url)`.
-
-```bash
-npx @gltf-transform/cli resize in.glb t1.glb --width 1024 --height 1024
 npx @gltf-transform/cli webp t1.glb t2.glb
 npx @gltf-transform/cli meshopt t2.glb out.glb --level medium
 ```

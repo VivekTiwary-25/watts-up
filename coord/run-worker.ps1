@@ -1,7 +1,8 @@
 ﻿# Usage: .\coord\run-worker.ps1 -Worker sol|luna|grok|vachana -Task T02-core-logic -Branch t02-core-logic [-NoJunction]
 # Each worker gets its own local clone (git data inside the folder, so sandboxed Codex can commit).
 # Boss merges with: git fetch D:\projects\vs-wt\<branch> <branch>:<branch>; git merge --no-ff <branch>
-param([string]$Worker, [string]$Task, [string]$Branch, [switch]$NoJunction)
+# Vachana: ONE call at a time (parallel calls trigger Cloudflare 403). Always explicit model: sonnet (normal) / opus (hard, reviews).
+param([string]$Worker, [string]$Task, [string]$Branch, [switch]$NoJunction, [string]$Model = 'sonnet')
 $ErrorActionPreference = 'Continue'
 $repo = 'D:\projects\vibe_sprint'
 $wt = "D:\projects\vs-wt\$Branch"
@@ -23,7 +24,7 @@ switch ($Worker) {
     $allow = @('Read','Edit','Write','Glob','Grep','Skill',
       'Bash(npm *)','Bash(npx *)','Bash(git *)','Bash(node *)','Bash(mkdir *)','Bash(cp *)','Bash(mv *)','Bash(ls *)','Bash(cat *)',
       'PowerShell(npm *)','PowerShell(npx *)','PowerShell(git *)','PowerShell(node *)','PowerShell(New-Item *)','PowerShell(Copy-Item *)','PowerShell(Move-Item *)','PowerShell(Get-ChildItem *)')
-    claude -p $prompt --output-format json --model opus --permission-mode acceptEdits --allowedTools $allow *>> $log
+    claude -p $prompt --output-format json --model $Model --permission-mode acceptEdits --allowedTools $allow *>> $log
     Remove-Item Env:\CLAUDE_CONFIG_DIR
   }
   'sol'  { codex exec -m gpt-6.1-sol -s workspace-write -c sandbox_workspace_write.network_access=true -C $wt $prompt *>> $log }
