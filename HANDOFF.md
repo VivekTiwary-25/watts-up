@@ -27,6 +27,18 @@ Merged T23 (pickError.id, portrait overview), T25 (procedural clay appliance mod
 ## Update 2026-11-13 (new boss session)
 Asked the user: models ARE coming (team will drop GLBs in public/models/raw); screenshots wait until models land. Nothing running. When the user says the models are in, start at Next step 2.
 
+## Update 2026-11-13 19:07 (freeze 19:30)
+Live = main e273c27, all 3 judge checks verified on https://watts-up-jade.vercel.app/ .
+Merged today: models (villa + 11 appliance GLBs, real-size fit table in ApplianceModel FIT_BY_FILE),
+stove/microwave/router (default Rs 850, best combo fridge+router+lights 11/13, 120 combos), villa sunset
+intro (IntroVilla.tsx, orbit), Villa|Rooms toggle with section cut at ground floor (villa store flag),
+AC placeholder, Power Cut polish, loading screen, rooms makeover A-E (cutaway walls/floors/labels,
+furniture, layout per coord/tasks/ROOM-PLAN.md, floor-routed wires + meter + terrace, night lighting),
+camera overview between panels + first-person room view + RoomNav + FirstHint. Docs: README + docs/DOC-01..06.
+Open: per-floor villa buttons (v2) not done; fridge/washer credits FILL IN; screenshots
+docs/screenshot-main.png + docs/screenshot-result.png to capture by hand; vitest also picks up
+.claude/worktrees copies - run `npx vitest run --dir src`.
+
 ## Next
 1. (done) Merge T20/T21/T22.
 2. Models: public/models still empty - ask user/team for status. When they land in public/models/raw: run optimizer (worker task), verify size < 15 MB, browser check, fill README credits from team's sheet.
