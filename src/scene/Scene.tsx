@@ -26,6 +26,7 @@ import { Ground, TERRACE } from './Ground'
 import { ALL_ANCHORS, FLOOR } from './layout'
 import { PickFeedback } from './PickFeedback'
 import { PostFX } from './PostFX'
+import { RoomHotspots } from './RoomHotspots'
 import { RoomLabels } from './RoomLabels'
 import { Quality } from './Quality'
 import { requestLiveShadows } from './useQuality'
@@ -225,6 +226,7 @@ export function Scene() {
           <House />
           <Furniture />
           <RoomLabels />
+          <RoomHotspots />
           <Meter />
           {ALL_ANCHORS.map((a) => (
             <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
