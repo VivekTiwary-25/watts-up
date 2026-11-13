@@ -67,13 +67,9 @@ export interface Anchor {
 
 /** Appliances that appear once. `light` is in LIGHT_ANCHORS (one per room). */
 export const ANCHORS: Anchor[] = [
-  {
-    id: 'tv',
-    room: 'living',
-    position: [-2.5, 0.85, 4.6],
-    size: [1.4, 0.8, 0.12],
-    rotationY: Math.PI,
-  },
+  // On the living↔bedroom wall, screen facing +z: every camera looks at it from the front.
+  // (Against the front wall it faced away and the wall hid it from overview and room view.)
+  { id: 'tv', room: 'living', position: [-3.5, 0.85, 0.15], size: [1.4, 0.8, 0.12] },
   { id: 'fan', room: 'living', position: [-2.5, 2.35, 2.5], size: [1.2, 0.12, 1.2] },
   {
     id: 'fridge',
@@ -93,7 +89,8 @@ export const ANCHORS: Anchor[] = [
   {
     id: 'washer',
     room: 'bathroom',
-    position: [5.4, 0.45, -1.0],
+    // far enough from the kitchen↔bathroom wall that the overview camera sees over it
+    position: [5.4, 0.45, -3.0],
     size: [0.7, 0.9, 0.65],
     rotationY: -Math.PI / 2,
   },
