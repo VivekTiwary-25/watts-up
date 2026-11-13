@@ -1,4 +1,5 @@
 import { ContactShadows } from '@react-three/drei'
+import { useHouse } from '@/store/useHouse'
 import { FLOOR, ROOMS, ROOM_IDS, WALLS } from './layout'
 
 const FLOOR_COLORS = { living: '#3a3f4a', kitchen: '#363c45', bedroom: '#3d3a46', bathroom: '#34404a' } as const
@@ -16,7 +17,23 @@ export function House() {
       {ROOM_IDS.map((id) => {
         const r = ROOMS[id]
         return (
-          <mesh key={id} name={`floor-${id}`} position={[r.center[0], 0.001, r.center[2]]} rotation-x={-Math.PI / 2} receiveShadow>
+          <mesh
+            key={id}
+            name={`floor-${id}`}
+            position={[r.center[0], 0.001, r.center[2]]}
+            rotation-x={-Math.PI / 2}
+            receiveShadow
+            onClick={(e) => {
+              if (e.delta > 6) return // camera drag
+              const s = useHouse.getState()
+              s.select(null)
+              s.setHovered(null)
+              if (s.view === 'overview') {
+                e.stopPropagation()
+                s.goToRoom(id)
+              }
+            }}
+          >
             <planeGeometry args={r.size} />
             <meshStandardMaterial color={FLOOR_COLORS[id]} roughness={0.85} />
           </mesh>
@@ -24,7 +41,8 @@ export function House() {
       })}
 
       {WALLS.map((w, i) => (
-        <mesh key={i} position={w.position} castShadow receiveShadow>
+        // stopPropagation: walls block clicks so you can't pick a floor/appliance through them
+        <mesh key={i} position={w.position} castShadow receiveShadow onClick={(e) => e.stopPropagation()}>
           <boxGeometry args={w.size} />
           <meshStandardMaterial color="#5a606b" roughness={0.9} />
         </mesh>
