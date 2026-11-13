@@ -1,4 +1,12 @@
-import { Component, Suspense, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import * as THREE from 'three'
 import { Environment, Sky, useGLTF } from '@react-three/drei'
 import { useHouse } from '@/store/useHouse'
@@ -31,6 +39,12 @@ function Villa() {
       if (node instanceof THREE.Mesh) {
         node.castShadow = false
         node.receiveShadow = false
+        // the night fog is tuned for the rooms (far = 52 m) and would wash the villa out
+        const materials = Array.isArray(node.material) ? node.material : [node.material]
+        for (const material of materials) {
+          material.fog = false
+          material.needsUpdate = true
+        }
       }
     })
     const bounds = new THREE.Box3().setFromObject(object)
@@ -54,7 +68,7 @@ function Ground() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[VILLA.x, VILLA.bottom - 0.01, VILLA.z]}>
       <circleGeometry args={[GROUND.radius, 48]} />
-      <meshStandardMaterial color={GROUND.color} roughness={1} />
+      <meshStandardMaterial color={GROUND.color} roughness={1} fog={false} />
     </mesh>
   )
 }
