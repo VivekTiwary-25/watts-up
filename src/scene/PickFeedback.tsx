@@ -5,6 +5,10 @@ import { VISUALS } from '@/data/config'
 import { useHouse, type ApplianceId } from '@/store/useHouse'
 import { MOTION } from './effects/mains'
 import { ALL_ANCHORS, type Anchor } from './layout'
+import { lastScenePick } from './useApplianceInteraction'
+
+/** A pickError this soon after a 3D click belongs to that click. */
+const RECENT_PICK_MS = 300
 
 const P = VISUALS.pick
 
@@ -80,12 +84,14 @@ export function PickFeedback() {
   const errorAt = useHouse((s) => s.pickError?.at ?? 0)
   const [flash, setFlash] = useState<{ id: ApplianceId; at: number } | null>(null)
 
-  // pickError.at changed: the clicked appliance is `selected` once the click handler finishes
+  // pickError.at changed. Flash only if the refused pick was a 3D click just now: `selected`
+  // is stale for picks made from the UI overlay and would flash the wrong appliance.
   useEffect(() => {
     if (!errorAt) return
-    const id = useHouse.getState().selected
-    if (!id) return
-    setFlash({ id, at: performance.now() })
+    const { id, at } = lastScenePick
+    const now = performance.now()
+    if (!id || now - at > RECENT_PICK_MS) return
+    setFlash({ id, at: now })
     const timer = window.setTimeout(() => setFlash(null), P.blockedMs + 50)
     return () => window.clearTimeout(timer)
   }, [errorAt])
