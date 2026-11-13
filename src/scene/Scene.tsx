@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber'
 import { AccumulativeShadows, RandomizedLight, Stars, useProgress } from '@react-three/drei'
 import { Selection } from '@react-three/postprocessing'
 import { QUALITY } from '@/data/config'
+import { useHouse } from '@/store/useHouse'
 import { ApplianceModel } from './ApplianceModel'
 import { CameraRig } from './CameraRig'
 import { Environment } from './Environment'
@@ -136,26 +137,31 @@ function GroundShadowBake({
 
 /** Everything inside the Canvas. */
 export function Scene() {
+  const intro = useHouse((s) => s.view === 'intro')
 
   return (
     <>
       <NightSky />
       <Environment />
-      {/* lights, appliance motion, energy wires, power-cut flicker */}
-      <Effects />
+      {/* lights, appliance motion, energy wires, power-cut flicker (rooms only) */}
+      <group visible={!intro}>
+        <Effects />
+      </group>
       <RimLight />
       {/* villa exterior + sky, intro view only */}
       <IntroVilla />
 
       <Selection>
-        {/* house.glb (the villa) is the intro exterior only; the rooms stay the clay shell */}
-        <House />
-        <Meter />
-        {ALL_ANCHORS.map((a) => (
-          <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
-        ))}
-        <PickFeedback />
-        <GroundShadows />
+        {/* the clay rooms hide while the intro shows the villa exterior */}
+        <group visible={!intro}>
+          <House />
+          <Meter />
+          {ALL_ANCHORS.map((a) => (
+            <ApplianceModel key={`${a.id}-${a.room}`} anchor={a} />
+          ))}
+          <PickFeedback />
+          <GroundShadows />
+        </group>
         {/* the single EffectComposer: AO, bloom, tone map, outline, vignette */}
         <PostFX />
       </Selection>

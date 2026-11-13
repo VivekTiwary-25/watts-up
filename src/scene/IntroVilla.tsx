@@ -1,12 +1,4 @@
-import {
-  Component,
-  Suspense,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
+import { Component, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react'
 import * as THREE from 'three'
 import { Environment, Sky, useGLTF } from '@react-three/drei'
 import { useHouse } from '@/store/useHouse'
@@ -14,9 +6,33 @@ import { glbExists } from './glb'
 
 const URL = '/models/house.glb'
 
-/** Where the villa sits so the fixed intro camera ([0,1.7,19] -> [0,1.2,0]) frames it. */
-const VILLA = { width: 30, x: 0, z: -14, bottom: -0.5 } as const
-const GROUND = { radius: 120, color: '#2c3a30' } as const
+/**
+ * The villa is fitted to 30 m across (x) and sits on the origin: bounding box centred in x/z,
+ * bottom at y = 0. The building itself runs along z (about -24..9 m); the hillside rises on -x,
+ * so the open facade faces +x, which is where the intro camera orbits (see VILLA_SHOT).
+ */
+const VILLA = { width: 30 } as const
+const GROUND = { radius: 160, color: '#3d4a2f' } as const
+
+/** Intro orbit around the villa: target, radius, height, sweep (radians either side of +x). */
+export const VILLA_SHOT = {
+  target: [0, -1.5, -8] as [number, number, number],
+  radius: 40,
+  height: 17,
+  sweep: 0.55,
+  periodS: 48,
+} as const
+
+/** Camera position on the intro orbit at time `t` seconds (static mid-sweep when `still`). */
+export function villaOrbit(t: number, still = false): [number, number, number] {
+  const s = VILLA_SHOT
+  const phase = still ? 0.35 : Math.sin((t / s.periodS) * Math.PI * 2) * s.sweep
+  return [
+    s.target[0] + Math.cos(phase) * s.radius,
+    s.height,
+    s.target[2] + Math.sin(phase) * s.radius,
+  ]
+}
 
 /** Swallows load failures (missing GLB, offline HDR) so the rooms scene is never affected. */
 class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -31,49 +47,41 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
 
 function Villa() {
   const { scene } = useGLTF(URL)
-  const object = useMemo(() => scene.clone(true), [scene])
-  const [fit, setFit] = useState<{ scale: number; position: [number, number, number] } | null>(null)
-
-  useLayoutEffect(() => {
+  const fitted = useMemo(() => {
+    const object = scene.clone(true)
     object.traverse((node) => {
-      if (node instanceof THREE.Mesh) {
-        node.castShadow = false
-        node.receiveShadow = false
-        // the night fog is tuned for the rooms (far = 52 m) and would wash the villa out
-        const materials = Array.isArray(node.material) ? node.material : [node.material]
-        for (const material of materials) {
-          material.fog = false
-          material.needsUpdate = true
-        }
-      }
+      if (!(node instanceof THREE.Mesh)) return
+      node.castShadow = false
+      node.receiveShadow = false
+      // the rooms' night fog (far = 52 m) would wash the villa out
+      const materials = Array.isArray(node.material) ? node.material : [node.material]
+      for (const material of materials) material.fog = false
     })
     const bounds = new THREE.Box3().setFromObject(object)
     const size = bounds.getSize(new THREE.Vector3())
     const center = bounds.getCenter(new THREE.Vector3())
     const scale = VILLA.width / (size.x || 1)
-    setFit({
-      scale,
-      position: [
-        VILLA.x - center.x * scale,
-        VILLA.bottom - bounds.min.y * scale,
-        VILLA.z - center.z * scale,
-      ],
-    })
-  }, [object])
+    const position: [number, number, number] = [
+      -center.x * scale,
+      -bounds.min.y * scale,
+      -center.z * scale,
+    ]
+    return { object, scale, position }
+  }, [scene])
 
-  return fit ? <primitive object={object} scale={fit.scale} position={fit.position} /> : null
+  return <primitive object={fitted.object} scale={fitted.scale} position={fitted.position} />
 }
 
 function Ground() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[VILLA.x, VILLA.bottom - 0.01, VILLA.z]}>
-      <circleGeometry args={[GROUND.radius, 48]} />
+    <mesh rotation-x={-Math.PI / 2} position={[0, -0.05, 0]} raycast={() => null}>
+      <circleGeometry args={[GROUND.radius, 64]} />
       <meshStandardMaterial color={GROUND.color} roughness={1} fog={false} />
     </mesh>
   )
 }
 
-/** Villa exterior, sky and sunset light. Mounted only while the intro view is showing. */
+/** Villa exterior, sunset sky and light. Mounted only while the intro view is showing. */
 export function IntroVilla() {
   const intro = useHouse((s) => s.view === 'intro')
   const [exists, setExists] = useState(false)
@@ -89,11 +97,17 @@ export function IntroVilla() {
   if (!intro) return null
   return (
     <>
-      <Sky sunPosition={[100, 6, -100]} />
+      <Sky
+        sunPosition={[100, 1.6, -70]}
+        turbidity={10}
+        rayleigh={3}
+        mieCoefficient={0.008}
+        mieDirectionalG={0.86}
+      />
       <Ground />
       <Boundary>
         <Suspense fallback={null}>
-          <Environment preset="sunset" />
+          <Environment preset="sunset" environmentIntensity={0.45} />
         </Suspense>
       </Boundary>
       {exists && (
