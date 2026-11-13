@@ -135,7 +135,7 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
   const [initialPicks] = useState(() => new Set(picks))
 
   return (
-    <CardShell reduced={reduced} shakeAt={pickError?.at} label="Inverter backup">
+    <CardShell reduced={reduced} label="Inverter backup">
       <Enter reduced={reduced}>
         <h2 className="text-balance px-2 pt-2 text-lg font-semibold tracking-tight">
           Inverter backup: choose 3 to keep running.
@@ -146,45 +146,50 @@ function ChoosingCard({ reduced }: { reduced: boolean }) {
             : `Select ${open === 1 ? '1 more' : `${open} more`} in the house.`}
         </p>
       </Enter>
-      {shown && (
-        <p
-          className="mt-3 rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-center text-sm font-medium text-amber-100"
-          role="alert"
-        >
-          {shown}
-        </p>
-      )}
       <Enter reduced={reduced}>
-        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label="Backup slots">
-          {slots.map((id, index) => (
-            <li key={id ?? `empty-${index}`}>
-              {id ? (
-                <motion.button
-                  type="button"
-                  onClick={() => pick(id)}
-                  title={APPLIANCE_BY_ID[id].name}
-                  aria-label={`Remove ${APPLIANCE_BY_ID[id].name} from backup`}
-                  className="relative flex min-h-11 w-full items-center gap-2 rounded-xl bg-white/5 pr-2.5 pl-3 text-left text-sm transition-[background-color] duration-150 ease-out hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-                  initial={reduced || initialPicks.has(id) ? false : { scale: 0.97 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.22, ease: CARD_EASE }}
-                >
-                  {!initialPicks.has(id) && <SlotPulse />}
-                  <span className="relative truncate">{APPLIANCE_BY_ID[id].name}</span>
-                  <X
-                    className="relative ml-auto size-3.5 shrink-0 opacity-70"
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
-                </motion.button>
-              ) : (
-                <div className="flex min-h-11 items-center rounded-xl border border-dashed border-white/15 px-3 text-sm text-muted-foreground">
-                  Empty
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+        <Shake reduced={reduced} at={pickError?.at}>
+          {shown && (
+            <motion.p
+              className="mt-3 rounded-full border border-amber-300/40 bg-amber-400/15 px-3 py-2 text-center text-sm font-medium text-amber-100"
+              role="alert"
+              initial={reduced ? false : { opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: CARD_EASE }}
+            >
+              {shown}
+            </motion.p>
+          )}
+          <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label="Backup slots">
+            {slots.map((id, index) => (
+              <li key={id ?? `empty-${index}`}>
+                {id ? (
+                  <motion.button
+                    type="button"
+                    onClick={() => pick(id)}
+                    title={APPLIANCE_BY_ID[id].name}
+                    aria-label={`Remove ${APPLIANCE_BY_ID[id].name} from backup`}
+                    className="relative flex min-h-11 w-full items-center gap-2 rounded-xl bg-white/5 pr-2.5 pl-3 text-left text-sm transition-[background-color] duration-150 ease-out hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                    initial={reduced || initialPicks.has(id) ? false : { scale: 0.97 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.22, ease: CARD_EASE }}
+                  >
+                    {!initialPicks.has(id) && <SlotPulse />}
+                    <span className="relative truncate">{APPLIANCE_BY_ID[id].name}</span>
+                    <X
+                      className="relative ml-auto size-3.5 shrink-0 opacity-70"
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
+                  </motion.button>
+                ) : (
+                  <div className="flex min-h-11 items-center rounded-xl border border-dashed border-white/15 px-3 text-sm text-muted-foreground">
+                    Empty
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Shake>
       </Enter>
       <Enter reduced={reduced}>
         <div className="mt-3 flex items-center justify-between gap-3 px-2">
@@ -325,26 +330,15 @@ function ResultCard({ reduced }: { reduced: boolean }) {
 
 function CardShell({
   reduced,
-  shakeAt,
   label,
   children,
 }: {
   reduced: boolean
-  shakeAt?: number
   label: string
   children: ReactNode
 }) {
-  const controls = useAnimationControls()
   const isPresent = useIsPresent()
   const card = reduced ? reducedCardMotion : cardMotion
-
-  useEffect(() => {
-    if (reduced || shakeAt == null) return
-    void controls.start({
-      x: [0, -10, 10, -8, 8, -4, 4, 0],
-      transition: { duration: 0.45, ease: 'easeInOut' },
-    })
-  }, [shakeAt, reduced, controls])
 
   return (
     <motion.section
@@ -358,19 +352,32 @@ function CardShell({
       animate={card.animate}
       exit={card.exit}
     >
-      <motion.div animate={controls}>
-        <motion.div
-          initial={reduced ? false : 'hidden'}
-          animate="show"
-          variants={
-            reduced ? undefined : { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
-          }
-        >
-          {children}
-        </motion.div>
+      <motion.div
+        initial={reduced ? false : 'hidden'}
+        animate="show"
+        variants={
+          reduced ? undefined : { hidden: {}, show: { transition: { staggerChildren: 0.08 } } }
+        }
+      >
+        {children}
       </motion.div>
     </motion.section>
   )
+}
+
+/** Brief 2-3 px shake when a 4th pick is blocked. Skipped under reduced motion. */
+function Shake({ reduced, at, children }: { reduced: boolean; at?: number; children: ReactNode }) {
+  const controls = useAnimationControls()
+
+  useEffect(() => {
+    if (reduced || at == null) return
+    void controls.start({
+      x: [0, -3, 3, -2, 2, 0],
+      transition: { duration: 0.25, ease: 'easeInOut' },
+    })
+  }, [at, reduced, controls])
+
+  return <motion.div animate={controls}>{children}</motion.div>
 }
 
 /** One-shot green-cyan glow when a slot fills. Opacity only, so it is motion-safe. */
