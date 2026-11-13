@@ -24,8 +24,11 @@ Merged R03 scene review (104 tests, 198 commits). Codex (Sol+Luna) 5h limit 100%
 ## Update 19:45
 Merged T23 (pickError.id, portrait overview), T25 (procedural clay appliance models - verified on live site, look good), T24 lint (Grok). 107 tests, 220 commits. All workers idle; Codex back ~21:15. Waiting on user: models yes/no + credits sheet; then final screenshots (claude-in-chrome save_to_disk -> docs/screenshots) + recording walkthrough.
 
+## Update 2026-11-13 (new boss session)
+Asked the user: models ARE coming (team will drop GLBs in public/models/raw); screenshots wait until models land. Nothing running. When the user says the models are in, start at Next step 2.
+
 ## Next
-1. Merge T20/T21/T22 (re-test power cut message on live site after).
+1. (done) Merge T20/T21/T22.
 2. Models: public/models still empty - ask user/team for status. When they land in public/models/raw: run optimizer (worker task), verify size < 15 MB, browser check, fill README credits from team's sheet.
 3. Mount LoadingScreen only once GLBs exist (guard so it never sticks).
 4. Final: screenshots to docs/screenshots (intro, dollhouse, AC on, target over, power cut choose, result) + help user record screen video; README screenshot links; final deploy check.
