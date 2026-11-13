@@ -1,4 +1,6 @@
-import { useRef } from 'react'
+import { useState } from 'react'
+import type { Anchor } from '../layout'
+import { ANCHORS } from '../layout'
 import { useFrame } from '@react-three/fiber'
 import type { ApplianceId } from '@/store/useHouse'
 import { useHouse } from '@/store/useHouse'
@@ -12,11 +14,18 @@ export interface Level { v: number }
  * Call it before the component's own useFrame so the value is fresh in the same frame.
  */
 export function useLevel(id: ApplianceId): Level {
-  const level = useRef<Level>({ v: 0 }).current
+  const [level] = useState<Level>(() => ({ v: 0 }))
   useFrame((_, dt) => {
     level.v = ease(level.v, targetLevel(useHouse.getState(), id, MAINS.flicker), dt, MOTION.reduce, easeRate())
   })
   return level
+}
+
+/** Layout anchor of a single-instance appliance (everything but `light`). */
+export function anchorOf(id: Exclude<ApplianceId, 'light'>): Anchor {
+  const a = ANCHORS.find((x) => x.id === id)
+  if (!a) throw new Error(`no anchor for ${id}`)
+  return a
 }
 
 /** Linear interpolation. */
