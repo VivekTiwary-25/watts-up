@@ -3,12 +3,13 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { VISUALS } from '@/data/config'
 import { useHouse, type ApplianceId } from '@/store/useHouse'
+import { MOTION } from './effects/mains'
 import { ALL_ANCHORS, type Anchor } from './layout'
 
 const P = VISUALS.pick
 
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+// cached media-query flag: no matchMedia() allocation per frame
+const prefersReducedMotion = () => MOTION.reduce
 
 const noRaycast = () => null
 
