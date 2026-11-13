@@ -21,6 +21,11 @@ Also merged: T09 intro, T10 sounds, T11 README, T08 effects+wires, T12 prettier 
 Integration TODO for boss: mount `<HouseModel />` + `<Environment />` (src/scene) in Scene.tsx after T14 merges; mount `<PowerCutOverlay />` after T05 merges (keep main's store/powercut over Grok's stubs).
 Running: T05 Grok, T14 realism (Vachana opus), T15 a11y (Sol), R02 review (Luna, read-only).
 
+## Update 17:45
+Merged since: R02 review, T16 (power-cut picks frozen after confirm + retryPicks), T15 a11y/mobile, T14 realism + quality tiers. 69 tests green on main. RULE: push only after `npm test` passes.
+Running: T05 Grok (PowerCutOverlay, slow, untracked files in clone), T19 Sol = second take of the same overlay in src/ui/powercut-alt (pick the better one, delete the other, mount it in HUD), T17 Luna (rupee count-up animation + deterministic tests), T18 Vachana sonnet (mount HouseModel/Environment, modelFile, ApplianceCard during cut, frameloop check).
+Then: browser-verify the 3 judge checks on https://watts-up-jade.vercel.app/ (claude-in-chrome), screenshots to docs/screenshots, README screenshots + credits from team's sheet.
+
 ## Next steps
 1. Merge T05/T08/T09/T10 as they finish. Then do the browser check of all 3 judge checks (toggle -> bill; target progress; power cut exactly 3).
 2. Vercel: user asked to import repo at vercel.com/new (Vite preset); waiting on their URL. Auto-deploys on push after that.
