@@ -1,5 +1,6 @@
 import { Ac } from './Ac'
 import { Fan } from './Fan'
+import { Geyser } from './Geyser'
 import { MainsDriver } from './MainsDriver'
 import { RoomLights, SceneLights } from './Lighting'
 import { Tv } from './Tv'
@@ -14,6 +15,7 @@ export function Effects() {
       <Fan />
       <Tv />
       <Ac />
+      <Geyser />
     </>
   )
 }
