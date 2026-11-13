@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { APPLIANCES, type ApplianceId } from '@/data/appliances'
-import { POWER_CUT, VISUALS } from '@/data/config'
-import { PLUGS, WALL, WIRE_ORIGIN } from '../layout'
+import { POWER_CUT } from '@/data/config'
+import { FLOOR, PLUGS } from '../layout'
 import {
-  bezierAt,
+  assignLanes,
   blackoutLevel,
   ease,
+  feedRoute,
   flickerFactor,
+  plugRoute,
   targetLevel,
   wireHeat,
-  wireMid,
   wireWidth,
+  WIRING,
   type DriveState,
 } from './drive'
 
@@ -71,9 +73,10 @@ describe('targetLevel / blackoutLevel', () => {
 })
 
 describe('wires', () => {
-  it('width grows with watts', () => {
+  it('width grows with watts and stays thin', () => {
     expect(wireWidth(1500)).toBeGreaterThan(wireWidth(40))
-    expect(wireWidth(0)).toBe(VISUALS.wire.baseWidth)
+    expect(wireWidth(0)).toBe(WIRING.width.min)
+    expect(wireWidth(99999)).toBe(WIRING.width.max)
   })
   it('heat is clamped 0..1', () => {
     expect(wireHeat(5000)).toBe(1)
@@ -83,12 +86,43 @@ describe('wires', () => {
     expect(PLUGS.filter((p) => p.id === 'light')).toHaveLength(4)
     expect(new Set(PLUGS.map((p) => p.key)).size).toBe(PLUGS.length)
   })
-  it('arcs over the walls for most of its length', () => {
-    for (const p of PLUGS) {
-      const mid = wireMid(WIRE_ORIGIN, p.position)
-      for (let t = 0.1; t <= 0.8; t += 0.05) {
-        expect(bezierAt(WIRE_ORIGIN, mid, p.position, t)[1]).toBeGreaterThan(WALL.height)
+
+  const lanes = assignLanes(PLUGS)
+  const routes = PLUGS.map((p) => plugRoute(p.position, lanes.get(p.key)!))
+
+  it('gives every plug its own lane', () => {
+    expect(lanes.size).toBe(PLUGS.length)
+    expect(new Set(lanes.values()).size).toBe(PLUGS.length)
+  })
+  it('routes are axis-aligned and stay inside the footprint', () => {
+    for (const r of [...routes, feedRoute().slice(2)]) {
+      for (const [x, , z] of r) {
+        expect(Math.abs(x)).toBeLessThan(FLOOR.width / 2 - 0.1)
+        expect(Math.abs(z)).toBeLessThan(FLOOR.depth / 2 - 0.1)
       }
+      for (let i = 1; i < r.length; i++) {
+        const changed = [0, 1, 2].filter((k) => Math.abs(r[i][k] - r[i - 1][k]) > 1e-6)
+        expect(changed).toHaveLength(1)
+      }
+    }
+  })
+  it('runs along the floor and only rises at the end, to the plug', () => {
+    PLUGS.forEach((p, i) => {
+      const r = routes[i]
+      r.slice(0, -1).forEach((pt) => expect(pt[1]).toBe(WIRING.y))
+      const end = r[r.length - 1]
+      expect(end[1]).toBeCloseTo(Math.max(WIRING.y, p.position[1]))
+      expect(Math.hypot(end[0] - p.position[0], end[2] - p.position[2])).toBeLessThan(0.2)
+    })
+  })
+  it('starts each wire on the feed line', () => {
+    const feed = feedRoute()
+    const [, , zEnd] = feed[feed.length - 1]
+    const [, , zStart] = feed[2]
+    for (const r of routes) {
+      expect(r[0][0]).toBe(WIRING.feedX)
+      expect(r[0][2]).toBeGreaterThanOrEqual(Math.min(zStart, zEnd))
+      expect(r[0][2]).toBeLessThanOrEqual(Math.max(zStart, zEnd))
     }
   })
 })

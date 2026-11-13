@@ -53,9 +53,29 @@ export function blackoutLevel(s: Pick<HouseState, 'powerCut'>, flicker: number):
   return 1
 }
 
-/** Wire thickness in world units for a load. */
+/**
+ * Floor wiring: the meter hangs on the outer east wall; one feed drops to the floor, enters
+ * through the wall and runs north along `feedX` to a bus of parallel floor lanes near the middle
+ * wall. Each appliance wire leaves the feed on its own lane, runs west, turns along z to its
+ * plug and rises vertically to it. Everything after the wall entry stays inside the footprint.
+ */
+export const WIRING = {
+  meter: { position: [6.17, 1.2, 4.6] as Vec3, size: [0.18, 0.5, 0.34] as Vec3 },
+  /** Conduit from the meter's bottom, between the wall face and the box back. */
+  conduitX: 6.1,
+  y: 0.03,
+  feedX: 5.8,
+  busZ: 0.2,
+  laneGap: 0.035,
+  /** Half-extents the wires never leave (house footprint, inside the walls). */
+  limit: { x: 5.88, z: 4.88 },
+  width: { min: 0.008, max: 0.02 },
+} as const
+
+/** Wire thickness in world units for a load: thin for small loads, never above `width.max`. */
 export function wireWidth(watts: number): number {
-  return VISUALS.wire.baseWidth + Math.max(0, watts) * VISUALS.wire.widthPerWatt
+  const { min, max } = WIRING.width
+  return min + (max - min) * Math.sqrt(wireHeat(watts))
 }
 
 /** 0..1 how "heavy" a load is, used to tint wires from cool to hot. */
@@ -63,17 +83,56 @@ export function wireHeat(watts: number): number {
   return Math.min(1, Math.max(0, watts / VISUALS.wire.highWatts))
 }
 
-/** Bezier control point: midway in plan, lifted well above the walls (longer runs arc higher). */
-export function wireMid(start: Vec3, end: Vec3): Vec3 {
-  const dx = end[0] - start[0]
-  const dz = end[2] - start[2]
-  const dist = Math.hypot(dx, dz)
-  const y = Math.max(start[1], end[1]) + VISUALS.wire.lift + dist * VISUALS.wire.liftPerUnit
-  return [(start[0] + end[0]) / 2, y, (start[2] + end[2]) / 2]
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+
+/** Drop consecutive duplicate points (zero-length segments). */
+function dedupe(points: Vec3[]): Vec3[] {
+  return points.filter((p, i) => i === 0 || p.some((v, k) => Math.abs(v - points[i - 1][k]) > 1e-6))
 }
 
-/** Point on a quadratic bezier (for tests / sanity checks). */
-export function bezierAt(a: Vec3, c: Vec3, b: Vec3, t: number): Vec3 {
-  const u = 1 - t
-  return [0, 1, 2].map((i) => u * u * a[i] + 2 * u * t * c[i] + t * t * b[i]) as Vec3
+/** Meter → floor → through the east wall → north along `feedX` to the first bus lane. */
+export function feedRoute(w: typeof WIRING = WIRING): Vec3[] {
+  const [, my, mz] = w.meter.position
+  const bottom = my - w.meter.size[1] / 2
+  return [
+    [w.conduitX, bottom, mz],
+    [w.conduitX, w.y, mz],
+    [w.feedX, w.y, mz],
+    [w.feedX, w.y, w.busZ],
+  ]
+}
+
+/**
+ * Bus lane (z) per plug key. Wires heading north of the bus take the lowest lanes, sorted east
+ * to west, and wires heading south take the upper lanes, sorted west to east, so no branch
+ * crosses another lane on its way to its plug.
+ */
+export function assignLanes(
+  plugs: { key: string; position: Vec3 }[],
+  w: typeof WIRING = WIRING,
+): Map<string, number> {
+  const north = plugs.filter((p) => p.position[2] < w.busZ)
+  const south = plugs.filter((p) => p.position[2] >= w.busZ)
+  north.sort((a, b) => b.position[0] - a.position[0])
+  south.sort((a, b) => a.position[0] - b.position[0])
+  const lanes = new Map<string, number>()
+  ;[...north, ...south].forEach((p, i) => lanes.set(p.key, w.busZ + i * w.laneGap))
+  return lanes
+}
+
+/**
+ * Manhattan route for one plug: from the feed along its lane, along z to the plug, then a
+ * vertical riser up to the plug height. Clamped to the footprint.
+ */
+export function plugRoute(plug: Vec3, laneZ: number, w: typeof WIRING = WIRING): Vec3[] {
+  const px = clamp(plug[0], -w.limit.x, w.limit.x)
+  const pz = clamp(plug[2], -w.limit.z, w.limit.z)
+  const lane = clamp(laneZ, -w.limit.z, w.limit.z)
+  const top = Math.max(w.y, plug[1])
+  return dedupe([
+    [w.feedX, w.y, lane],
+    [px, w.y, lane],
+    [px, w.y, pz],
+    [px, top, pz],
+  ])
 }
