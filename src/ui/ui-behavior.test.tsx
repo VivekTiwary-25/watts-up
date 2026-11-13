@@ -85,6 +85,26 @@ describe('UI behavior', () => {
     expect(screen.getByRole('button', { name: 'Mute' })).toBeTruthy()
   })
 
+  it('card switch reflects inverter picks during a power cut', () => {
+    act(() => {
+      useHouse.getState().select('fan')
+      useHouse.getState().startPowerCut()
+      useHouse.getState().setPowerCutPhase('choosing')
+    })
+    render(<ApplianceCard />)
+    const dialog = screen.getByRole('dialog', { name: 'Ceiling Fan' })
+    expect(within(dialog).getByText('Keep on inverter')).toBeTruthy()
+    const sw = within(dialog).getByRole('switch')
+    expect(sw.getAttribute('aria-checked')).toBe('false')
+    fireEvent.click(sw)
+    expect(useHouse.getState().picks).toEqual(['fan'])
+    expect(sw.getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(sw)
+    expect(useHouse.getState().picks).toEqual([])
+    // normal on/off state is untouched by picking
+    expect(useHouse.getState().on.fan).toBe(true)
+  })
+
   it('closes selected and hovered details with Escape and restores the opener focus', () => {
     render(
       <>
