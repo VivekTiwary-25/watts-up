@@ -8,22 +8,29 @@ export function ApplianceList() {
     toggle = useHouse((s) => s.toggle),
     select = useHouse((s) => s.select)
   return (
-    <section className="glass pointer-events-auto w-64 rounded-2xl p-3">
+    <section className="glass pointer-events-auto w-full rounded-2xl p-3">
       <button
-        className="w-full text-left text-sm font-medium"
+        className="w-full rounded-lg text-left text-sm font-medium hover:bg-white/5"
         aria-expanded={open}
+        aria-controls="appliance-list"
         onClick={() => setOpen(!open)}
       >
-        Appliances <span className="float-right">{open ? '−' : '+'}</span>
+        Appliances{' '}
+        <span aria-hidden="true" className="float-right">
+          {open ? '−' : '+'}
+        </span>
       </button>
       {open && (
-        <ul className="mt-2 space-y-1">
+        <ul id="appliance-list" className="mt-2 space-y-1">
           {APPLIANCES.map((a) => (
             <li
               key={a.id}
               className="flex items-center justify-between rounded-lg px-2 py-1 hover:bg-white/5"
             >
-              <button className="text-sm" onClick={() => select(a.id)}>
+              <button
+                className="min-w-0 flex-1 rounded-lg pr-2 text-left text-sm"
+                onClick={() => select(a.id)}
+              >
                 {a.name}
               </button>
               <Switch
