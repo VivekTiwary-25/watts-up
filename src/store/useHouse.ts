@@ -14,6 +14,8 @@ export interface HouseState {
   hours: Record<ApplianceId, number>
   targetBill: number
   view: View
+  /** true = show the cut-open villa instead of the clay rooms (outside the intro) */
+  villa: boolean
   focusRoom: Exclude<RoomId, 'all'> | null
   hovered: ApplianceId | null
   selected: ApplianceId | null
@@ -27,6 +29,7 @@ export interface HouseState {
   setHours(id: ApplianceId, h: number): void
   setTarget(n: number): void
   setView(v: View): void
+  setVilla(v: boolean): void
   goToRoom(r: Exclude<RoomId, 'all'>): void
   backToOverview(): void
   setHovered(id: ApplianceId | null): void
@@ -51,6 +54,7 @@ export const useHouse = create<HouseState>((set, get) => ({
   >,
   targetBill: DEFAULT_TARGET_BILL,
   view: 'intro',
+  villa: false,
   focusRoom: null,
   hovered: null,
   selected: null,
@@ -76,6 +80,7 @@ export const useHouse = create<HouseState>((set, get) => ({
       set({ targetBill: Math.max(TARGET_RANGE.min, Math.min(TARGET_RANGE.max, n)) })
   },
   setView: (view) => set({ view }),
+  setVilla: (villa) => set({ villa }),
   goToRoom: (focusRoom) => set({ view: 'room', focusRoom }),
   backToOverview: () => set({ view: 'overview', focusRoom: null }),
   setHovered: (hovered) => set({ hovered }),

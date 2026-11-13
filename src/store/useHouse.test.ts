@@ -18,6 +18,17 @@ describe('house store', () => {
     expect(state.view).toBe('intro')
   })
 
+  it('switches the villa view independently of leaving the intro', () => {
+    expect(useHouse.getState().villa).toBe(false)
+    useHouse.getState().setVilla(true)
+    expect(useHouse.getState().villa).toBe(true)
+    useHouse.getState().setView('overview')
+    expect(useHouse.getState().villa).toBe(true)
+    useHouse.getState().setVilla(false)
+    expect(useHouse.getState().villa).toBe(false)
+    expect(useHouse.getState().view).toBe('overview')
+  })
+
   it('toggles and explicitly sets appliances without changing other switches', () => {
     const before = useHouse.getState().on
     useHouse.getState().toggle('fan')

@@ -138,22 +138,25 @@ function GroundShadowBake({
 /** Everything inside the Canvas. */
 export function Scene() {
   const intro = useHouse((s) => s.view === 'intro')
+  const villa = useHouse((s) => s.villa)
+  // the clay rooms + their effects only show in the "Rooms" view, not over the villa
+  const rooms = !intro && !villa
 
   return (
     <>
       <NightSky />
       <Environment />
       {/* lights, appliance motion, energy wires, power-cut flicker (rooms only) */}
-      <group visible={!intro}>
+      <group visible={rooms}>
         <Effects />
       </group>
       <RimLight />
-      {/* villa exterior + sky, intro view only */}
+      {/* villa exterior + sky: intro and the cut-open "Villa" view */}
       <IntroVilla />
 
       <Selection>
-        {/* the clay rooms hide while the intro shows the villa exterior */}
-        <group visible={!intro}>
+        {/* the clay rooms hide while the intro or the villa view shows the villa */}
+        <group visible={rooms}>
           <House />
           <Meter />
           {ALL_ANCHORS.map((a) => (
