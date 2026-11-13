@@ -5,6 +5,7 @@ import { DEFAULT_TARGET_BILL, TARGET_RANGE } from '../data/config';
 import { computeBill, type BillResult } from '../lib/bill';
 import { isValidSelection, togglePick } from '../lib/powercut';
 
+export type { ApplianceId, RoomId } from '../data/appliances';
 export type View = 'intro' | 'overview' | 'room';
 export type PowerCutPhase = 'off' | 'flicker' | 'choosing' | 'result';
 
